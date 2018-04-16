@@ -229,6 +229,10 @@ function start() {
   window.addEventListener('keydown', keyDown);
   window.addEventListener('keyup', keyUp);
 
+
+  var keyE = {
+    down: function() { d.x += (d.flipped) ? -200 : 200;}//(d.flipped) ? 5 : -5; }
+  }
   var keyR = {
     held: function() {d.mx+=1;d.flipped=false;},
   }
@@ -246,6 +250,9 @@ function start() {
     // down: function() {d.held.angle *= -1},
     down: d.attack.bind(d)
   }
+
+  keyMap[69] = keyE;
+
   keyMap[68] = keyR;
   keyMap[65] = keyL;
   keyMap[87] = keyU;
