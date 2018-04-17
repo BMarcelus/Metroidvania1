@@ -30,7 +30,10 @@ function bowSprite()
 {
   var image = document.createElement('canvas');
   var w = 50;
-  var h = 20;
+  var h = 30;
+  var aw = 10;
+  var ah = 10;
+  var midw = w/2;
   image.width = w;
   image.height = h;
   var ctx = image.getContext('2d');
@@ -38,12 +41,21 @@ function bowSprite()
   ctx.fillStyle = '#6d413b';
   ctx.beginPath();
   ctx.moveTo(0,0);
-  ctx.quadraticCurveTo(w*0.5, h*1.8, w, 0);
+  ctx.quadraticCurveTo(w*0.5, h, w, 0);
   ctx.lineWidth = 4;
   ctx.stroke();
   ctx.fillStyle = "black";
   ctx.lineWidth = 1;
-  ctx.strokeRect(0, 0, w, 4)
+  ctx.strokeRect(0, 0, w, 1);
+
+  ctx.fillRect(w/2, 0, 2, h-8);
+  ctx.fillRect(midw-aw/2, 0, aw, 1);
+  ctx.fillRect(midw-aw/2, 3, aw, 1);
+  ctx.fillRect(midw-aw/2, 5, aw, 1);
+  ctx.lineWidth = 5;
+  drawTriangle(ctx, midw+aw/2, h-ah, midw-aw/2, h-ah, midw, h);
+  //drawTriangle(ctx, 0,0,w,h,w,h/2);
+
 
   return image;
 }
@@ -152,7 +164,7 @@ function Mover() {
 
 function Weapon() {
   var obj = {};
-  obj.image = swordSprite();//swordSprite();
+  obj.image = bowSprite();//swordSprite();//swordSprite();
   Rect2(obj, 0,0, obj.image.width, obj.image.height);
   obj.color = '#444';
   obj.pivotx = -obj.pivoty;
@@ -297,9 +309,9 @@ function start() {
 
   var keyE = {
     // down: function() { d.vx += (d.flipped) ? -60 : 60;}//(d.flipped) ? 5 : -5; }
-    held: function() {
-      for(var i=0;i<10;i++) {
-        d.x += 5 * (1-2*d.flipped);
+    down: function() {
+      for(var i=0;i<25;i++) {
+        d.vx += 2 * (1-2*d.flipped);
         d.draw();
       }
     }
