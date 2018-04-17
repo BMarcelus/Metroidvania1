@@ -17,6 +17,28 @@ var keyMap = {};
 
 var fallables = [];
 
+function bowSprite()
+{
+  var image = document.createElement('canvas');
+  var w = 50;
+  var h = 20;
+  image.width = w;
+  image.height = h;
+  var ctx = image.getContext('2d');
+ 
+  ctx.fillStyle = '#6d413b';
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.quadraticCurveTo(w*0.5, h*1.8, w, 0);
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  ctx.fillStyle = "black";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0, 0, w, 4)
+
+  return image;
+}
+
 function axeSprite() {
   var image = document.createElement('canvas');
   var w = 50;
@@ -121,7 +143,7 @@ function Mover() {
 
 function Weapon() {
   var obj = {};
-  obj.image = axeSprite();//swordSprite();
+  obj.image = bowSprite();//swordSprite();
   Rect2(obj, 0,0, obj.image.width, obj.image.height);
   obj.color = '#444';
   obj.pivotx = -obj.pivoty;
