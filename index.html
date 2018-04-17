@@ -17,6 +17,15 @@ var keyMap = {};
 
 var fallables = [];
 
+function drawTriangle(canvas, x,y,x2,y2,x3,y3) {
+  canvas.beginPath();
+  canvas.moveTo(x,y);
+  canvas.lineTo(x2,y2);
+  canvas.lineTo(x3,y3);
+  canvas.closePath();
+  canvas.fill();
+}
+
 function swordSprite() {
   var image = document.createElement('canvas');
   var w = 40;
@@ -233,7 +242,13 @@ function start() {
 
 
   var keyE = {
-    down: function() { d.vx += (d.flipped) ? -60 : 60;}//(d.flipped) ? 5 : -5; }
+    // down: function() { d.vx += (d.flipped) ? -60 : 60;}//(d.flipped) ? 5 : -5; }
+    held: function() {
+      for(var i=0;i<3;i++) {
+        d.x += 20 * (1-2*d.flipped);
+        d.draw();
+      }
+    }
   }
   var keyR = {
     held: function() {d.mx+=1;d.flipped=false;},
@@ -265,6 +280,7 @@ function start() {
   keyMap[39] = keyR;
   keyMap[40] = keyD;
   keyMap[74] = keyA;
+  keyMap[75] = keyE;
 
   function step() {
     canvas.clearRect(0,0,CE.width,CE.height);
