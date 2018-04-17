@@ -17,6 +17,26 @@ var keyMap = {};
 
 var fallables = [];
 
+function axeSprite() {
+  var image = document.createElement('canvas');
+  var w = 50;
+  var h = 16;
+  image.width = w;
+  image.height = h;
+  var ctx = image.getContext('2d');
+  ctx.fillStyle = 'brown';
+  ctx.fillRect(0, 0, w, h/2);
+
+  ctx.save();
+  ctx.fillStyle = "#a2a5b5";  
+  ctx.translate(w * 0.8, (h/2) * 0.6, 0, 0);
+  ctx.rotate(Math.PI/4);
+  ctx.fillRect(0, 0, h, h);
+  ctx.restore(); 
+
+  return image;
+}
+
 function swordSprite() {
   var image = document.createElement('canvas');
   var w = 40;
@@ -46,6 +66,7 @@ function drawRect() {
   canvas.fillStyle = this.color;
   canvas.fillRect(this.x,this.y,this.w,this.h);
 }
+
 function drawRect2(angle) {
   canvas.save();
   canvas.fillStyle = this.color;  
@@ -55,6 +76,7 @@ function drawRect2(angle) {
   canvas.fillRect(-this.pivotx,-this.pivoty,this.w,this.h);
   canvas.restore();
 }
+
 function drawImage(angle) {
   canvas.save();
   canvas.fillStyle = this.color;  
@@ -73,6 +95,7 @@ function Rect(obj, x,y,w,h) {
   obj.h = h;
   return obj;
 }
+
 function Rect2(obj, x,y,w,h) {
   obj = Rect(obj,x,y,w,h);
   obj.scalew = 1;
@@ -98,12 +121,12 @@ function Mover() {
 
 function Weapon() {
   var obj = {};
-  Rect2(obj, 0,0, 40, 15);
+  obj.image = axeSprite();//swordSprite();
+  Rect2(obj, 0,0, obj.image.width, obj.image.height);
   obj.color = '#444';
   obj.pivotx = -obj.pivoty;
   obj.angle = Math.PI*.8;
   obj.lastAngle = obj.angle;
-  obj.image = swordSprite();
   obj.drawShape = drawImage;
   obj.attackState=0;
   obj.strikeAngle = 0;
@@ -121,6 +144,7 @@ function Weapon() {
   }
   obj.draw = function() {
     // this.color = '#444';
+    if(this.angle>0)this.scaleh=-1;
     this.drawShape(this.angle + this.strikeAngle);
     var angle = this.angle;
     var lastAngle = this.lastAngle;
@@ -138,6 +162,7 @@ function Weapon() {
         this.x= 20+8* Math.cos(cangle);
         this.scalew = 1 + Math.abs(lastAngle-i)/10;
         this.scaleh = this.scalew;
+        if(this.angle>0)this.scaleh*=-1;        
         this.scalew += Math.cos(cangle)/10;
         // this.scalew = 1+Math.cos(cangle)/2;
         this.drawShape(cangle + this.strikeAngle);
@@ -268,6 +293,10 @@ function start() {
 
   function step() {
     canvas.clearRect(0,0,CE.width,CE.height);
+
+    canvas.fillStyle ="#a5553e";
+    canvas.fillRect(0, 450, CE.width, CE.height);
+
     d.mx=0;
     keysHeld();
     d.draw();
@@ -275,11 +304,14 @@ function start() {
     fallables.forEach(function(e) {
       e.y += e.vy;
       e.vy += e.grav;
-      if(e.y+e.h>=400) {
-        e.y=400-e.h;
+      if(e.y+e.h>=450) {
+        e.y=450-e.h;
         e.vy = 0;
       }
     })
+   
+    
+
     window.requestAnimationFrame(step);
   }
   step();
