@@ -1,0 +1,63 @@
+<style>
+#gc {
+  border: 1px solid black;
+}
+</style>
+<canvas id="gc"></canvas>
+<script>
+var CE = document.getElementById('gc');
+CE.width = 600;
+CE.height= 400;
+var canvas = CE.getContext('2d');
+
+
+function drawGainsboro(x,y) {
+
+  canvas.fillStyle = 'gainsboro';
+  canvas.fillRect(x,y,200,200);
+  canvas.fillStyle = 'peru';
+  canvas.fillRect(x,y,50,200);
+
+  canvas.fillStyle = 'lightgoldenrodyellow';
+  canvas.fillRect(125+x,30+y,25,25);
+  canvas.fillStyle = 'lightgoldenrodyellow';
+  canvas.fillRect(167+x,30+y,25,25);
+}
+
+
+
+
+var x = 0;
+var y = 0;
+var hasdrawn = false;
+
+// drawGainsboro(x,y)
+// drawGainsboro(x,y)
+
+// setInterval(function() {
+
+//   canvas.clearRect(0,0,CE.width,CE.height);
+//   drawGainsboro(x,y);
+
+// },10);
+
+window.addEventListener('keydown', function(e) {
+  if(hasdrawn) {
+    canvas.clearRect(0,0,CE.width,CE.height);
+    hasdrawn = false;
+    x += 100
+  } else {
+    drawGainsboro(x,y);
+    hasdrawn = true;
+    y += 0
+  
+
+  }
+  if (x >= CE.width - 100) {
+    x = 0
+  }
+
+  // hasdrawn = true;
+  // if brian is a butthead, then taylor is a queen
+});
+</script>
