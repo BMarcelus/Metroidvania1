@@ -165,16 +165,18 @@ function Wielder() {
   obj.vx=0;
   obj.speed = 10;
   obj.update = function() {
-    if(this.vx==0) {
+    if(this.mx==0) {
       this.angle = 0;
     } else {
       this.angle = Math.cos(this.x/30)*Math.PI/20;    
     }
-    this.vx = this.mx * this.speed;
-    this.x+=this.vx;
+    // this.vx = this.mx * this.speed;
+    // this.x += this.vx;
+    this.vx *= .8;
+    this.x += this.vx + this.mx*this.speed;
   }
   obj.attack = function() {
-    // if(this.attacking)return;
+    if(this.attacking)return;
     this.attacking=true;
     // this.held.angle *= -1;
     var dx= 10 * (1-2*this.flipped);
@@ -231,7 +233,7 @@ function start() {
 
 
   var keyE = {
-    down: function() { d.x += (d.flipped) ? -200 : 200;}//(d.flipped) ? 5 : -5; }
+    down: function() { d.vx += (d.flipped) ? -60 : 60;}//(d.flipped) ? 5 : -5; }
   }
   var keyR = {
     held: function() {d.mx+=1;d.flipped=false;},
