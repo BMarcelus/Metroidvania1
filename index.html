@@ -152,7 +152,7 @@ function Mover() {
 
 function Weapon() {
   var obj = {};
-  obj.image = bowSprite();//swordSprite();
+  obj.image = swordSprite();//swordSprite();
   Rect2(obj, 0,0, obj.image.width, obj.image.height);
   obj.color = '#444';
   obj.pivotx = -obj.pivoty;
@@ -173,13 +173,20 @@ function Weapon() {
     // if(this.attackState==0)this.angle = Math.PI*.8;
     // else this.angle = -Math.PI*.8;
   }
+  obj.update = function() {
+    this.lastAngle += (this.angle-this.lastAngle)/2;
+  }
   obj.draw = function() {
     // this.color = '#444';
     if(this.angle>0)this.scaleh=-1;
-    this.drawShape(this.angle + this.strikeAngle);
     var angle = this.angle;
     var lastAngle = this.lastAngle;
     canvas.save();
+    // canvas.translate(this.w/2,this.h/2);
+    canvas.rotate(this.strikeAngle);
+    canvas.scale(1,.5);
+    // canvas.translate(-this.w/4,-this.h/2);    
+    this.drawShape(this.angle);    
     if(this.lastAngle != angle) {
       // this.color = 'red';
         var da = -Math.PI/10;
@@ -196,7 +203,7 @@ function Weapon() {
         if(this.angle>0)this.scaleh*=-1;        
         this.scalew += Math.cos(cangle)/10;
         // this.scalew = 1+Math.cos(cangle)/2;
-        this.drawShape(cangle + this.strikeAngle);
+        this.drawShape(cangle);
       }
     }
     canvas.restore();
@@ -205,7 +212,6 @@ function Weapon() {
     // this.scalew += (1-this.scalew)/2;
     // this.scaleh += (1-this.scaleh)/2;
     // this.angle = angle;
-    this.lastAngle += (angle-lastAngle)/2;
     // this.lastAngle = linearMove(this.lastAngle, angle, Math.PI/3);
   }
   return obj;
@@ -230,6 +236,7 @@ function Wielder() {
     // this.x += this.vx;
     this.vx *= .8;
     this.x += this.vx + this.mx*this.speed;
+    this.held.update();
   }
   obj.attack = function() {
     if(this.attacking)return;
@@ -248,7 +255,7 @@ function Wielder() {
         self.x-=dx;
         self.attacking=false;
       }, 100)
-    }, 100)
+    }, 50)
   }
   obj.drawShape = function() {
     canvas.fillStyle = this.color;
@@ -264,7 +271,7 @@ function Wielder() {
     canvas.translate(-this.pivotx, -this.pivoty);
     // this.held.x = this.x;
     // this.held.y = this.y;
-    this.drawShape();    
+    this.drawShape(); 
     this.held.draw();
     canvas.restore();
   }
@@ -291,24 +298,29 @@ function start() {
   var keyE = {
     // down: function() { d.vx += (d.flipped) ? -60 : 60;}//(d.flipped) ? 5 : -5; }
     held: function() {
-      for(var i=0;i<3;i++) {
-        d.x += 20 * (1-2*d.flipped);
+      for(var i=0;i<10;i++) {
+        d.x += 5 * (1-2*d.flipped);
         d.draw();
       }
     }
   }
   var keyR = {
+    down: function() {d.held.strikeAngle=0;},
     held: function() {d.mx+=1;d.flipped=false;},
   }
   var keyL = {
+    down: function() {d.held.strikeAngle=0;},
     held: function() {d.mx-=1;d.flipped=true;}
   }
   var keyU = {
-    down: function() {d.vy = -d.jumpPower;},
+    down: function() {d.held.strikeAngle=-Math.PI/2},
+  }
+  var keyJ = {
+    down: function() {d.vy = -d.jumpPower;}
   }
   var keyD = {
-    down: function() {d.vy*=1.5;d.y+=d.h/2; d.h = d.h/2},
-    up: function() {d.h=d.h*2;d.y-=d.h/2},
+    down: function() {d.vy*=1.5;d.y+=d.h/2; d.h = d.h/2;d.held.strikeAngle=Math.PI/2},
+    up: function() {d.h=d.h*2;d.y-=d.h/2;},
   }
   var keyA = {
     // down: function() {d.held.angle *= -1},
@@ -321,7 +333,7 @@ function start() {
   keyMap[65] = keyL;
   keyMap[87] = keyU;
   keyMap[83] = keyD;
-  keyMap[32] = keyU;
+  keyMap[32] = keyJ;
   keyMap[37] = keyL;
   keyMap[38] = keyU;
   keyMap[39] = keyR;
