@@ -25,6 +25,20 @@ function drawGainsboro(x,y) {
 }
 
 
+function drawBarn(x,y,w,h) {
+
+canvas.fillStyle = 'gainsboro';
+canvas.fillRect(x,y,200,200);
+canvas.fillStyle = 'peru';
+canvas.fillRect(x,y,50,200);
+
+canvas.fillStyle = 'lightgoldenrodyellow';
+canvas.fillRect(125+x,30+y,25,25);
+canvas.fillStyle = 'lightgoldenrodyellow';
+canvas.fillRect(167+x,30+y,25,25);
+}
+
+
 
 
 var x = 0;

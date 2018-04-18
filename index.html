@@ -16,6 +16,7 @@ var keys = [];
 var keyMap = {};
 
 var fallables = [];
+var entities = [];
 
 function drawTriangle(canvas, x,y,x2,y2,x3,y3) {
   canvas.beginPath();
@@ -341,6 +342,8 @@ function start() {
   keyMap[74] = keyA;
   keyMap[75] = keyE;
 
+  entities.push(d);
+
   function step() {
     canvas.clearRect(0,0,CE.width,CE.height);
 
@@ -349,8 +352,17 @@ function start() {
 
     d.mx=0;
     keysHeld();
-    d.draw();
-    d.update();
+    // d.draw();
+    // d.update();
+    for(var i=0;i<entities.length;i++) {
+      var e = entities[i];
+      if(e.shouldDelete) {
+        entities.splice(i--,1);
+      } else {
+        e.draw();        
+      }
+      e.update();      
+    }
     fallables.forEach(function(e) {
       e.y += e.vy;
       e.vy += e.grav;
