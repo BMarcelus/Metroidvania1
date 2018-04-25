@@ -18,6 +18,7 @@ var keyMap = {};
 
 var renderobjects = [];
 var physicsobjects = [];
+var colliderobjects = [];
 
 function drawrect(x, y, w , h, color)
 {
@@ -39,6 +40,37 @@ function setuprect(obj, x, y, w, h)
   obj.y = y;
   obj.w = w;
   obj.h = h;
+  return obj;
+}
+
+function lineinequality(px, py, x1, y1, x2, y2, cx, cy)
+{
+  let m = (y2 - y1) / (x2 - x1);
+  let b = y1 - (m * x1);
+  return (cy > m * cx + b) ? py > m * px + b : py < m * px + b;
+}
+
+function rectcollision(r1, r2)
+{
+   return r1.x > r2.x && r1.x < r2.x + r2.w && r1.y > r2.y && r1.y < r2.y + r2.h; 
+}
+
+function Collider(obj, x = 0, y = 0, w = 30, h = 30)
+{
+  obj.collider = {};
+  colliderobjects.push(obj.collider);
+  obj.collider.parent = obj;
+  obj.collider.name = obj.name;
+
+  setuprect(obj.collider, x, y, w, h)
+
+  obj.collider.checkcollisions = function () {
+    colliderobjects.forEach(element => {
+      if(rectcollision(this, element))
+        console.log("collision:" + this.name+ " " + element.name);
+    });
+  }
+
   return obj;
 }
 
@@ -99,6 +131,7 @@ function Player()
   obj.name = "George";
   obj = Kinematic(obj);
   obj = Rendered(obj);
+  obj = Collider(obj);
 
   obj.speed = 5;
   obj.jumpPower = 20;
@@ -109,6 +142,9 @@ function Player()
 function start() {
 
   var d = Player();
+  var e = Player();
+  e.x = 50;
+  e.y = 50;
 
   var kb = {};
   keySetup(kb);
@@ -127,6 +163,7 @@ function start() {
 
     renderobjects.forEach(function(element) { element.drawself(); });
     physicsobjects.forEach(function(element) {element.physicsstep(); });
+    colliderobjects.forEach(function(element) { element.checkcollisions(); });
 
     window.requestAnimationFrame(step);
   }
@@ -186,33 +223,4 @@ function keyUp(e) {
   if(m && m.up) m.up();
 }
 
-/*
-function start()
-{  
-  //window.addEventListener('keydown', keyDown);
-  //window.addEventListener('keyup', keyUp);
-
-  player = Player();
-  player.draw();
-
-  function step() 
-  {
-    canvas.clearRect(0,0,CE.width,CE.height);
-    canvas.fillStyle ="#a5553e";
-    canvas.fillRect(0, 450, CE.width, CE.height);
-    drawables.forEach
-    (
-      element => { element.draw(); }
-    );
-    
-    player.draw();
-    //window.requestAnimationFrame(step);
-    //console.log("step");
-    step();
-  }
-  step();
-}
-
-start();
-*/
 </script>
