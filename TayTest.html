@@ -71,21 +71,21 @@ setInterval(function() {
 // },10);
 
 window.addEventListener('keydown', function(e) {
-  // if(hasdrawn) {
-  //   canvas.clearRect(0,0,CE.width,CE.height);
-  //   hasdrawn = false;
-  //   x += 100
-  // } else {
-  //   drawGainsboro(x,y);
-  //   hasdrawn = true;
-  //   y += 0
+  if(hasdrawn) {
+    canvas.clearRect(0,0,CE.width,CE.height);
+    hasdrawn = false;
+    x += 100
+  } else {
+    drawGainsboro(x,y);
+    hasdrawn = true;
+    y += 0
   
 
-  // }
-  // if (x >= CE.width - 100) {
-  //   x = 0
-  // }
-  draw = !draw;
+  }
+  if (x >= CE.width - 100) {
+    x = 0
+  }
+  // draw = !draw;
   // hasdrawn = true;
   // if brian is a butthead, then taylor is a queen
 });

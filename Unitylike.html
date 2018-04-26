@@ -1,0 +1,312 @@
+<style>
+body {
+  margin: 0;
+  padding: 0;
+}
+</style>
+<canvas id="gc"></canvas>
+<script>
+var CE = document.getElementById('gc');
+CE.width = window.innerWidth;
+CE.height = window.innerHeight;
+var canvas = CE.getContext('2d');
+
+function Error(msg) {
+  console.log(msg);
+  error;
+}
+
+class ComponentHandler {
+  constructor() {
+    this.elements = [];
+  }
+  errorCheck() {}
+  addElement(element) {
+    this.elements.push(element);
+    this.errorCheck(element);
+  }
+  filter() {
+    this.elements = this.elements.filter(function(e) {return !e.shouldDelete});
+  }
+  handle() {
+  }
+}
+class RendererHandler extends ComponentHandler {
+  errorCheck(entity) {
+    if(!entity.draw) {
+      Error("no draw");
+    }
+  }
+  handle() {
+    for(var i=0;i<this.elements.length;i++) {
+      var e = this.elements[i];
+      if(e.shouldDelete) {
+        this.elements.splice(i--, 1);
+      } else {
+        e.draw(canvas);
+      }
+    }
+  }
+}
+class EntityHandler extends ComponentHandler {
+  errorCheck(entity) {
+    if(!entity.update) {
+      Error("no update")
+    }
+  }
+  handle() {
+    for(var i=0;i<this.elements.length;i++) {
+      var e = this.elements[i];
+      e.update();
+      if(e.shouldDelete) {
+        this.elements.splice(i--, 1);
+      }
+    }
+  }
+}
+class CollisionHandler extends ComponentHandler{
+  errorCheck(collider) {
+    if(!collider.onCollision) {
+      Error("no onColission");
+    }
+  }
+  collides(a, b) {
+  }
+  handle() {
+    this.filter();
+    for(var i=0;i<this.elements.length-1;i+=1) {
+      var e1 = this.elements[i];
+      for(var j=i+1;j<this.elements.length;j+=1) {
+        var e2 = this.elements[j];
+        if(this.collides(e1,e2)) {
+          e1.onCollision(e2);
+          e2.onCollision(e1);
+        }
+      }
+    }
+  }
+}
+
+class Scene {
+  constructor() {
+    this.components = [];
+    this.EntityHandler = new EntityHandler();
+    this.CollisionHandler = new CollisionHandler();
+    this.RendererHandler = new RendererHandler();
+    this.Awakes = [];
+    this.Starts = [];
+  }
+  addObjects(){}
+  init() {
+    this.addObjects();
+    this.EntityHandler.elements.forEach(function(e) {e.awake();})
+    this.EntityHandler.elements.forEach(function(e) {e.start();})
+  }
+  onEnter() { this.init() }
+  onLeave() {}
+  addEntity(entity) {
+    entity.scene = this;
+    if(entity.hasRenderer) {
+      this.RendererHandler.addElement(entity);
+    }
+    if(entity.hasCollision) {
+      this.CollisionHandler.addElement(entity);
+    }
+    this.EntityHandler.addElement(entity);
+  }
+  update() {
+    this.EntityHandler.handle();
+    this.CollisionHandler.handle();
+    canvas.clearRect(0,0,CE.width, CE.height);    
+    this.RendererHandler.handle();
+  }
+}
+
+var Time = {time: 0, deltaTime:0, last: Date.now(), frame: 0};
+class MainDriver {
+  constructor() {
+    this.step = this.step.bind(this);
+    Time.last = Date.now();    
+  }
+  setScene(scene) {
+    if(this.scene)this.scene.onLeave();
+    scene.driver = this;
+    this.scene = scene;
+    scene.onEnter();
+  }
+  init() {
+    if(!this.scene) Error("no scene");
+    this.step();
+  }
+  step() {
+    Time.time = Date.now();
+    Time.deltaTime = (Time.time - Time.last)*60/1000;
+    Time.last=Time.time;
+    Time.frame += 1;
+    this.scene.update();
+    window.requestAnimationFrame(this.step);
+  }
+}
+
+var RenderType = {
+  simpleRectangle: function(canvas) {
+    canvas.fillStyle = this.fill;
+    canvas.fillRect(this.x,this.y,this.w,this.h);
+  }
+}
+
+class Entity {
+  constructor(name) {
+    this.name=name;
+    this.updates = [];
+    this.collisions = [];
+    this.awakes = [];
+    this.starts = [];
+  }
+  draw(canvas) {
+    canvas.save();
+    canvas.translate(this.x,this.y);
+    canvas.scale(this.scaleW, this.scaleH);
+    canvas.rotate(this.angle);
+    this.renderer.draw(canvas);
+    canvas.restore();
+  }
+  Transform(x,y,scaleW,scaleH,angle) {
+    this.x=x;
+    this.y=y;
+    this.scaleW=scaleW;
+    this.scaleH=scaleH;
+    this.angle=angle;
+    return this;
+  }
+  RectCollider(offsetX,offsetY,w,h) {
+    this.rectCollider = {
+      parent: this,
+      x: offsetX, y: offsetY, w, h
+    }
+    this.hasCollision=true;
+    return this;
+  }
+  RectRenderer(offsetX,offsetY,w,h,fill) {
+    this.renderer = {
+      parent: this,
+      x: offsetX,y:offsetY,
+      w, h,
+      fill: fill,
+      draw: RenderType.simpleRectangle
+    }
+    this.hasRenderer=true;
+    return this;
+  }
+  Rect(offsetX,offsetY,w,h,fill) {
+    this.RectCollider(offsetX,offsetY,w,h);
+    this.RectRenderer(offsetX,offsetY,w,h,fill);
+    return this;
+  }
+  awake() {
+    this.awakes.forEach(function(e) {
+      e();
+    })
+  }
+  Awake(func) {
+    this.awakes.push(func.bind(this));
+    // this.hasAwake=true;
+    return this;
+  }
+  start() {
+    this.starts.forEach(function(e) {
+      e();
+    })
+  }
+  Start(func) {
+    this.starts.push(func.bind(this));
+    // this.hasStart=true;
+    return this;
+  }
+  update() {
+    this.updates.forEach(function(e) {
+      e();
+    })
+  }
+  Update(func) {
+    this.updates.push(func.bind(this));
+    // this.hasUpdate=true;
+    return this;
+  }
+  onCollision() {
+    this.collisions.forEach(function(e) {
+      e();
+    })
+  }
+  OnCollision(func) {
+    this.collisions.push(func.bind(this));
+    // this.hasUpdate=true;
+    return this;
+  }  
+  Behavior(obj) {
+    obj.entity = this;
+    if(obj.update)
+    this.updates.push(obj.update);
+    if(obj.awake)
+    this.awakes.push(obj.awake);
+    if(obj.start)
+    this.starts.push(obj.start);
+    if(obj.onCollision)
+    this.collisions.push(obj.onCollision);
+  }
+}
+
+class Scene1 extends Scene {
+  addObjects(){
+    this.addEntity(new Entity('myName')
+        .Transform(0,0,1,1,0)
+        .Rect(0,0,100,100,'black')
+        .Update(function() {
+          var x = Input.getKey(68) - Input.getKey(65);
+          this.x += Time.deltaTime * x * 10;
+          var y = Input.getKey(83) - Input.getKey(87);
+          this.y += Time.deltaTime * y * 10;
+        })
+        .Awake(function() {
+          this.x+=100;
+        })
+        .Start(function() {
+          this.y+=this.x;
+        })
+    );
+  }
+}
+
+
+var buildScenes = {
+  0: Scene1
+}
+
+var main;
+var Input = {
+  keys: [],
+  getKey: function(k) {
+    return this.keys[k]>0;
+  },
+  getKeyDown: function(k) {
+    // return this.keys[k];
+    return this.keys[k] == Time.frame;
+  }
+};
+function start() {
+  main = new MainDriver();
+  main.setScene( new buildScenes[0]() );
+  main.init();
+}
+
+window.addEventListener('keydown', function(e) {
+  var k = e.keyCode;
+  Input.keys[k] = Time.frame+1;
+})
+window.addEventListener('keyup', function(e) {
+  var k = e.keyCode;
+  Input.keys[k] = 0;
+})
+
+window.onload = start;
+</script>
