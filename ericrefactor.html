@@ -1,0 +1,226 @@
+<style>
+#gc {
+  border: 1px solid black;
+  display: block;
+  margin: auto;
+}
+</style>
+<canvas id="gc"></canvas>
+<script>
+
+var CE = document.getElementById('gc');
+CE.width = 680;
+CE.height = 480;
+var canvas = CE.getContext('2d');
+
+var keys = [];
+var keyMap = {};
+
+var renderobjects = [];
+var physicsobjects = [];
+var colliderobjects = [];
+
+function drawrect(x, y, w , h, color)
+{
+  //console.log(obj.x, obj.y, obj.w, obj.h);
+  canvas.fillStyle = color;
+  canvas.fillRect(x,y,w,h);
+}
+
+function drawrect2(obj)
+{
+  //console.log(obj.x, obj.y, obj.w, obj.h);
+  canvas.fillStyle = obj.color;
+  canvas.fillRect(obj.x,obj.y,obj.w,obj.h);
+}
+
+function setuprect(obj, x, y, w, h)
+{
+  obj.x = x;
+  obj.y = y;
+  obj.w = w;
+  obj.h = h;
+  return obj;
+}
+
+function lineinequality(px, py, x1, y1, x2, y2, cx, cy)
+{
+  let m = (y2 - y1) / (x2 - x1);
+  let b = y1 - (m * x1);
+  return (cy > m * cx + b) ? py > m * px + b : py < m * px + b;
+}
+
+function rectcollision(r1, r2)
+{
+   return r1.x > r2.x && r1.x < r2.x + r2.w && r1.y > r2.y && r1.y < r2.y + r2.h; 
+}
+
+function Collider(obj, x = 0, y = 0, w = 30, h = 30)
+{
+  obj.collider = {};
+  colliderobjects.push(obj.collider);
+  obj.collider.parent = obj;
+  obj.collider.name = obj.name;
+
+  setuprect(obj.collider, x, y, w, h)
+
+  obj.collider.checkcollisions = function () {
+    colliderobjects.forEach(element => {
+      if(rectcollision(this, element))
+        console.log("collision:" + this.name+ " " + element.name);
+    });
+  }
+
+  return obj;
+}
+
+function Kinematic(obj, x = 0, y = 0, w = 30, h = 30)
+{
+  console.log("physics");
+  obj.physics = {};
+  physicsobjects.push(obj.physics);
+  obj.physics.parent = obj;
+
+  setuprect(obj.physics, x, y, w, h);
+  obj.physics.vx = 0;
+  obj.physics.vy = 0;
+  obj.physics.dogravity = false;
+  
+  vx = obj.physics.vx;
+  vy = obj.physics.vy;
+  obj.physics.applygravity = function() { this.vy = (this.vy > 0) ? this.vy - 1 : this.vy; }
+  obj.physics.physicsstep = function() {
+    //console.log("phys x:", this.parent.x);
+    if(this.dogravity)
+      this.applygravity();
+    this.parent.x += this.vx;
+    this.parent.y += this.vy;
+    this.vx = this.vy = 0;
+  }
+  
+  return obj;
+}
+
+function Rendered(obj, x = 0, y = 0, w = 30, h = 30)
+{
+  console.log("render");
+  obj.sprite = {};
+  renderobjects.push(obj.sprite);
+  obj.sprite.parent = obj;
+
+  setuprect(obj.sprite, x, y, w, h);
+  obj.sprite.color = 'black';
+  
+  obj.sprite.drawself = function () { drawrect(this.x + this.parent.x, this.y + this.parent.y, this.w, this.h, this.color); }
+
+  return obj;
+}
+
+function Entity(obj, x = 0, y = 0, w = 30, h = 30)
+{
+  console.log("entity");
+  obj.name = "DEFAULT";
+  setuprect(obj, x, y, w, h);
+  return obj;
+}
+
+function Player()
+{
+  var obj = {};
+  obj = Entity(obj);
+  obj.name = "George";
+  obj = Kinematic(obj);
+  obj = Rendered(obj);
+  obj = Collider(obj);
+
+  obj.speed = 5;
+  obj.jumpPower = 20;
+
+  return obj;
+}
+
+function start() {
+
+  var d = Player();
+  var e = Player();
+  e.x = 50;
+  e.y = 50;
+
+  var kb = {};
+  keySetup(kb);
+  kb.up = function() { d.physics.vy += -d.speed; }
+  kb.right = function() { d.physics.vx += d.speed; }
+  kb.left = function() { d.physics.vx += -d.speed; }
+  kb.down = function() { d.physics.vy += d.speed; }
+
+  function step() {
+    canvas.clearRect(0,0,CE.width,CE.height);
+
+    canvas.fillStyle ="#a5553e";
+    canvas.fillRect(0, 450, CE.width, CE.height);
+
+    keysHeld();
+
+    renderobjects.forEach(function(element) { element.drawself(); });
+    physicsobjects.forEach(function(element) {element.physicsstep(); });
+    colliderobjects.forEach(function(element) { element.checkcollisions(); });
+
+    window.requestAnimationFrame(step);
+  }
+  step();
+}
+start();
+
+function keySetup(obj) {
+
+  window.addEventListener('keydown', keyDown);
+  window.addEventListener('keyup', keyUp);
+
+  obj.keyR = {
+    held: function() { obj.right(); }
+  }
+  obj.keyL = {
+    held: function() { obj.left();}
+  }
+  obj.keyJ = {
+    held: function() { obj.up(); }
+  }
+
+  obj.keyD = {
+    held: function() { obj.down(); }
+  }
+
+  keyMap[40] = obj.keyD; //down arrow
+  keyMap[83] = obj.keyD; // 's'
+  keyMap[68] = obj.keyR; // 'd'
+  keyMap[65] = obj.keyL; // 'a'
+  keyMap[87] = obj.keyJ; // 'w'
+  keyMap[32] = obj.keyJ; // ' '
+  keyMap[37] = obj.keyL; // <= left arrow
+  keyMap[39] = obj.keyR; // => right arrow
+}
+
+function keysHeld() {
+  //console.log("held");
+  for(var i in keyMap)
+    if(keys[i]) {
+      var m = keyMap[i];
+      if(m.held) m.held();
+    }
+}
+function keyDown(e) {
+  var k = e.keyCode;
+  if(keys[k])return;
+  keys[k] = true;
+  var m = keyMap[k];
+  if(m && m.down) m.down();
+}
+function keyUp(e) {
+  var k = e.keyCode;
+  if(!keys[k])return;
+  keys[k] = false;
+  var m = keyMap[k];
+  if(m && m.up) m.up();
+}
+
+</script>
