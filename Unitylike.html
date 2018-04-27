@@ -3,13 +3,16 @@ body {
   margin: 0;
   padding: 0;
 }
+#gc {
+  /* border: 1px solid black; */
+  padding: 0;
+  display: block;
+  margin: 0;
+  /* width: 100%;   */
+}
 </style>
 <canvas id="gc"></canvas>
 <script>
-var CE = document.getElementById('gc');
-CE.width = window.innerWidth;
-CE.height = window.innerHeight;
-var canvas = CE.getContext('2d');
 
 function Error(msg) {
   console.log(msg);
@@ -32,20 +35,27 @@ class ComponentHandler {
   }
 }
 class RendererHandler extends ComponentHandler {
+  constructor(canvas) {
+    super();
+    this.canvas = canvas;
+  }
   errorCheck(entity) {
     if(!entity.draw) {
       Error("no draw");
     }
   }
   handle() {
+    this.canvas.clear();
     for(var i=0;i<this.elements.length;i++) {
       var e = this.elements[i];
       if(e.shouldDelete) {
         this.elements.splice(i--, 1);
       } else {
-        e.draw(canvas);
+        e.draw(this.canvas);
       }
     }
+    this.canvas.fillStyle='red';
+    this.canvas.fillText(Time.fps, 10,10);
   }
 }
 class EntityHandler extends ComponentHandler {
@@ -70,7 +80,10 @@ class CollisionHandler extends ComponentHandler{
       Error("no onColission");
     }
   }
-  collides(a, b) {
+  collides(o1, o2) {
+    var a = o1.hitBox;
+    var b = o2.hitBox;
+    return a.x+a.w>=b.x&&a.x<=b.x+b.w&&a.y+a.h>=b.y&&a.y<=b.y+b.h;
   }
   handle() {
     this.filter();
@@ -87,12 +100,52 @@ class CollisionHandler extends ComponentHandler{
   }
 }
 
-class Scene {
+class LayeredCollisionHandler extends ComponentHandler {
   constructor() {
+    this.layers = {
+      default: [],
+    };
+    this.layerCollisionMap = {
+      default: [this.layers.default],
+    };
+  }
+  addLayer(name) {
+    this.layers[name] = [];
+    return this;
+  }
+  addLayerCollisions(name, collisions) {
+    this.layerCollisionMap[name] = collisions;
+  }
+  addElement(element, layer) {
+    (layer||this.layers.default).push(element);
+  }
+  filter() {
+    this.layers.forEach(function(layer, index, layers) {
+      layers[index] = layer.filter(function(e) { return !e.shouldDelete });
+    });
+  }
+  handleSelfCollision(layer) {
+    for(var i=0;i<layer.length-1;i+=1) {
+      var e1 = layer[i];
+      for(var j=i+1;j<layer.length;j+=1) {
+        var e2 = layer[j];
+        if(this.collides(e1,e2)) {
+          e1.onCollision(e2);
+          e2.onCollision(e1);
+        }
+      }
+    }
+  }
+
+}
+
+class Scene {
+  constructor(canvas) {
+    this.canvas = canvas;
     this.components = [];
     this.EntityHandler = new EntityHandler();
     this.CollisionHandler = new CollisionHandler();
-    this.RendererHandler = new RendererHandler();
+    this.RendererHandler = new RendererHandler(canvas);
     this.Awakes = [];
     this.Starts = [];
   }
@@ -113,16 +166,37 @@ class Scene {
       this.CollisionHandler.addElement(entity);
     }
     this.EntityHandler.addElement(entity);
+    return entity;
   }
   update() {
     this.EntityHandler.handle();
     this.CollisionHandler.handle();
-    canvas.clearRect(0,0,CE.width, CE.height);    
     this.RendererHandler.handle();
   }
 }
 
-var Time = {time: 0, deltaTime:0, last: Date.now(), frame: 0};
+var Time = {
+  time: 0,
+  deltaTime:0,
+  last: Date.now(),
+  frame: 0,
+  fps: 0,
+  framesPerInterval: 0,
+  intervalStart: Date.now(),
+  intervalLength: 1000,
+  update: function() {
+    Time.time = Date.now();
+    Time.deltaTime = (Time.time - Time.last)*60/1000;
+    Time.last=Time.time;
+    Time.frame += 1;
+    Time.framesPerInterval += 1;
+    if(Time.time>=Time.intervalStart+Time.intervalLength) {
+      Time.fps = Time.framesPerInterval;
+      Time.framesPerInterval=0;
+      Time.intervalStart=Time.time;
+    }
+  }
+};
 class MainDriver {
   constructor() {
     this.step = this.step.bind(this);
@@ -139,10 +213,7 @@ class MainDriver {
     this.step();
   }
   step() {
-    Time.time = Date.now();
-    Time.deltaTime = (Time.time - Time.last)*60/1000;
-    Time.last=Time.time;
-    Time.frame += 1;
+    Time.update();
     this.scene.update();
     window.requestAnimationFrame(this.step);
   }
@@ -184,7 +255,17 @@ class Entity {
       parent: this,
       x: offsetX, y: offsetY, w, h
     }
+    this.w=w;
+    this.h=h;
     this.hasCollision=true;
+    this.Update(function() {
+      this.hitBox = {
+        x: this.x + this.rectCollider.x,
+        y: this.y + this.rectCollider.y,
+        w: this.rectCollider.w,
+        h: this.rectCollider.h,
+      }
+    })
     return this;
   }
   RectRenderer(offsetX,offsetY,w,h,fill) {
@@ -229,18 +310,20 @@ class Entity {
     })
   }
   Update(func) {
+    // this.update = func;
     this.updates.push(func.bind(this));
     // this.hasUpdate=true;
     return this;
   }
-  onCollision() {
+  onCollision(other) {
     this.collisions.forEach(function(e) {
-      e();
+      e(other);
     })
   }
   OnCollision(func) {
-    this.collisions.push(func.bind(this));
-    // this.hasUpdate=true;
+    this.onCollision = func;
+    // this.collisions.push(func.bind(this));
+    // this.hasCollision=true;
     return this;
   }  
   Behavior(obj) {
@@ -257,23 +340,74 @@ class Entity {
 }
 
 class Scene1 extends Scene {
-  addObjects(){
-    this.addEntity(new Entity('myName')
-        .Transform(0,0,1,1,0)
-        .Rect(0,0,100,100,'black')
-        .Update(function() {
-          var x = Input.getKey(68) - Input.getKey(65);
-          this.x += Time.deltaTime * x * 10;
-          var y = Input.getKey(83) - Input.getKey(87);
-          this.y += Time.deltaTime * y * 10;
-        })
-        .Awake(function() {
-          this.x+=100;
-        })
-        .Start(function() {
-          this.y+=this.x;
-        })
-    );
+  addObjects() {
+    var boundToScreen = function() {
+      var w = this.scene.canvas.width-this.w;
+      var h = this.scene.canvas.height-this.h;
+      if(this.x<0)this.x = 0;
+      if(this.y<0)this.y= 0;
+      if(this.x>w)this.x=w;
+      if(this.y>h)this.y=h;
+    }
+    var randomColor = function() {
+      this.renderer.fill = 'rgba(0,0,0,' + Math.random()+')';
+    }
+    var player = new Entity('Player')
+      .Transform(100,100,1,1,0)
+      .Rect(0,0,10,10,'red')
+      .Update(function() {
+        var x = Input.getKey(68) - Input.getKey(65);
+        this.x += Time.deltaTime * x * 10;
+        var y = Input.getKey(83) - Input.getKey(87);
+        this.y += Time.deltaTime * y * 10;
+      })
+      .Update(boundToScreen)
+      .Awake(function() {
+        this.x+=100;
+      })
+      .Start(function() {
+        this.y+=this.x;
+      });
+    for(var i=0;i<1000;i+=1) {
+      this.addEntity(new Entity('lilthing'+i)
+          .Transform(i*1,(i%100)*1,1,1,0)
+          .Rect(0,0,5,5,'black')
+          // .Update(randomColor)
+          .Update(function() {
+            var dx = this.target.x-this.x;
+            var dy = this.target.y-this.y;
+            var theta = -Math.PI*.4;
+            var cosTheta = Math.cos(theta);
+            var sinTheta = Math.sin(theta);
+            var mx = dx * cosTheta - dy * sinTheta;
+            var my = dx * sinTheta + dy * cosTheta;
+            var r = Math.sqrt(mx*mx+my*my);
+            if(r==0)r=1;
+            var speed = 5;
+            // var r = 100;
+            this.x += mx/r*speed;
+            this.y += my/r*speed;
+            if(this.x<10)this.x+=1;
+            if(this.y<10)this.y+=1;
+          })
+          .Update(boundToScreen)
+          .Start(function() {
+            this.target = player;
+          })
+          .OnCollision(function(other) {
+            var dx = other.x-this.x;
+            var dy = other.y-this.y;
+            var r = Math.sqrt(dx*dx+dy*dy);
+            // var r = 1;
+            if(r==0)r=1;            
+            this.x -= dx/r;
+            this.y -= dy/r;
+            other.x += dx/r;
+            other.y += dy/r;
+          })
+      );
+    }
+    this.addEntity(player);
   }
 }
 
@@ -293,9 +427,22 @@ var Input = {
     return this.keys[k] == Time.frame;
   }
 };
+function sizeToWindow(CE, canvas) {
+  canvas.width = CE.width = window.innerWidth;
+  canvas.height = CE.height = window.innerHeight;
+}
 function start() {
+  var CE = document.getElementById('gc');
+  var mainCanvas = CE.getContext('2d');
+  mainCanvas.clear = function() {
+    this.clearRect(0,0,this.width,this.height);
+  }
+  sizeToWindow(CE, mainCanvas);
+  window.addEventListener('resize', function() {
+    sizeToWindow(CE, mainCanvas);
+  })
   main = new MainDriver();
-  main.setScene( new buildScenes[0]() );
+  main.setScene( new buildScenes[0](mainCanvas) );
   main.init();
 }
 
