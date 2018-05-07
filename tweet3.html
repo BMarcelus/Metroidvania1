@@ -1,0 +1,1 @@
+<h1>Click to Test Reaction</h1><script>p=document.querySelector('h1');D=Date.now;A=e=>p.innerHTML=e;s=0;a=e=>A('wait',setTimeout(e=>A('go',s=1,t=D()),Math.random()*1e4),a=e=>(s?A('win '+(D()-t)+'ms'):A('lose'),A=e=>0));addEventListener('mousedown',e=>a());</script>
