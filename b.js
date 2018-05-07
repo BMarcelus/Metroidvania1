@@ -11,7 +11,7 @@ function BDOTJS() {
     process: () => {
       Time.time = Date.now();
       const framesPerMilisecond = 60 / 1000;
-      const maxDT = framesPerMilisecond * 100;
+      // const maxDT = framesPerMilisecond * 100;
       Time.deltaTime = (Time.time - Time.last) * framesPerMilisecond;
       // if (Time.deltaTime > maxDT) Time.deltaTime = framesPerMilisecond;
       Time.last = Time.time;
@@ -118,12 +118,11 @@ function BDOTJS() {
       const { canvas } = this;
       canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
     }
-    handleLayerCollisions() {
-      for (let i = 0; i < this.layerCollisionMap.length; i += 1) {
-        const map = this.layerCollisionMap[i];
-
-      }
-    }
+    // handleLayerCollisions() {
+    //   for (let i = 0; i < this.layerCollisionMap.length; i += 1) {
+    //     const map = this.layerCollisionMap[i];
+    //   }
+    // }
     handleCollisions() {
       for (let i = 0; i < this.entities.length - 1; i += 1) {
         const e1 = this.entities[i];
