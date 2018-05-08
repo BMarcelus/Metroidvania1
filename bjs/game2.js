@@ -1,5 +1,6 @@
+const { Driver, Entity, Input, Time, SetupCanvas } = BDOTJS();
+
 function start() {
-  const { Driver, Entity, Input, Time, SetupCanvas } = BDOTJS();
   const { CE, canvas } = SetupCanvas();
   Input.addButton('jump', [87, 38, 32]);
   Input.addButton('crouch', [83, 40]);
@@ -31,9 +32,11 @@ function start() {
     this.y += this.vy;
   }
   class HitBox extends Entity {
-    constructor(tag, ...args) {
+    constructor(parent, ...args) {
       super(...args);
-      this.tag = tag;
+      this.parent = parent;
+      this.tag = parent.team;
+      this.direction = parent.direction;
       this.life = 1;
       this.color = 'red';
     }
@@ -92,7 +95,7 @@ function start() {
       let x = this.x + (this.w / 2) + d;
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
-      this.driver.addEntity(new HitBox(this.team, x, y, s, s));
+      this.driver.addEntity(new HitBox(this, x, y, s, s));
     }
     jump() {
       if (!this.grounded) return;
@@ -106,12 +109,14 @@ function start() {
   }
   class Enemy extends Entity {
     constructor(world, ...args) {
-      super(world, ...args);
+      super(...args);
       this.world = world;
       this.vx = 0;
       this.vy = 0;
       this.gravity = 1;
       this.color = 'blue';
+      this.life = 10;
+      this.onGrounded = this.onGrounded.bind(this);
     }
     update() {
       applyGravity.call(this);
@@ -121,8 +126,21 @@ function start() {
     }
     onCollision(col) {
       if (col.tag === 1) {
-        this.shouldDelete = true;
+        this.color = '#0ff';
+        setTimeout(() => { this.color = '#2af'; }, 50);
+        this.vx = 10 * col.direction;
+        this.vy = -10;
+        this.life -= 1;
+        if (this.life <= 0) {
+          setTimeout(() => { this.shouldDelete = true; }, 200);
+        } else {
+          setTimeout(() => { this.color = 'blue'; }, 200);
+        }
       }
+    }
+    onGrounded() {
+      this.grounded = true;
+      this.vx = 0;
     }
   }
   class World {
@@ -147,11 +165,9 @@ function start() {
   const world = new World();
   const player = new Player(world, 100, 100, 50, 100);
   setInterval(() => {
-    main.addEntity(new Enemy(world, 100, 100, 100, 100));
+    main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
   }, 1000);
   main.addEntity(player);
-  main.addEntity(new Enemy(world, 100, 100, 100, 100));
-  
   main.start();
 }
 window.onload = start;
