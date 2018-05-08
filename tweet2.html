@@ -1,6 +1,0 @@
-<canvas></canvas><script>
-c=document.querySelector('canvas').getContext('2d');
-c.R=c.fillRect;t=v=y=0;I=e=>v=-10;w=addEventListener;w('keydown',I);
-L=e=>c.fillStyle=e;
-setInterval(e=>{L('#000'),c.R(0,0,1e4,1e4),L('#fff'),y+=v,v+=1,c.R(0,y,10,10),t++,(y>1e3||y<0)?y=v=0:y},20);
-</script>

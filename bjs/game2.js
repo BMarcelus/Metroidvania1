@@ -31,8 +31,9 @@ function start() {
     this.y += this.vy;
   }
   class HitBox extends Entity {
-    constructor(...args) {
+    constructor(tag, ...args) {
       super(...args);
+      this.tag = tag;
       this.life = 1;
       this.color = 'red';
     }
@@ -55,6 +56,7 @@ function start() {
       this.onGrounded = this.onGrounded.bind(this);
       this.flipped = false;
       this.direction = 1;
+      this.team = 1;
     }
     update() {
       const hi = Input.getAxisHorizontal();
@@ -74,10 +76,10 @@ function start() {
         this.y -= this.startH / 2;
       }
       if (Input.getButtonDown('a')) {
-        this.x += this.direction * 10;
+        this.x += this.direction * 20;
         this.attack();
       } else if (Input.getButtonUp('a')) {
-        this.x -= this.direction * 10;
+        this.x -= this.direction * 20;
       }
       applyGravity.call(this);
       applyVelocity.call(this);
@@ -90,7 +92,7 @@ function start() {
       let x = this.x + (this.w / 2) + d;
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
-      this.driver.addEntity(new HitBox(x, y, s, s));
+      this.driver.addEntity(new HitBox(this.team, x, y, s, s));
     }
     jump() {
       if (!this.grounded) return;
@@ -100,6 +102,27 @@ function start() {
     onGrounded() {
       this.grounded = true;
       this.vy = 0;
+    }
+  }
+  class Enemy extends Entity {
+    constructor(world, ...args) {
+      super(world, ...args);
+      this.world = world;
+      this.vx = 0;
+      this.vy = 0;
+      this.gravity = 1;
+      this.color = 'blue';
+    }
+    update() {
+      applyGravity.call(this);
+      applyVelocity.call(this);
+      boundToScreen.call(this);
+      this.world.boundToFloor(this, this.onGrounded);
+    }
+    onCollision(col) {
+      if (col.tag === 1) {
+        this.shouldDelete = true;
+      }
     }
   }
   class World {
@@ -123,7 +146,12 @@ function start() {
   const main = new Driver(canvas);
   const world = new World();
   const player = new Player(world, 100, 100, 50, 100);
+  setInterval(() => {
+    main.addEntity(new Enemy(world, 100, 100, 100, 100));
+  }, 1000);
   main.addEntity(player);
+  main.addEntity(new Enemy(world, 100, 100, 100, 100));
+  
   main.start();
 }
 window.onload = start;
