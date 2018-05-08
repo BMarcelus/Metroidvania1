@@ -65,7 +65,7 @@ function start() {
       let r = Math.sqrt((dx * dx) + (dy * dy));
       // const r = 100;
       // if ((Time.frame + this.offset) % 100 === 0) {
-        // this.shoot(dx / r, dy / r);
+      //   this.shoot(dx / r, dy / r);
       //   this.bline();
       // }
       const theta = this.angle;
@@ -138,7 +138,7 @@ function start() {
   for (let i = 0; i < 1000; i += 1) {
     const thing = new LilThing(i * 1, (i % 100) * 1, 5, 5, target);
     thing.angle = 0;
-    thing.speed = 10-Math.random()*5;
+    thing.speed = 10 - (Math.random() * 5);
     main.addEntity(thing);
     target = thing;
     // if (Math.random() > 0.9) target = player;

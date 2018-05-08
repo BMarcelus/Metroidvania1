@@ -30,26 +30,21 @@ function BDOTJS() {
     addButton: (name, keys) => {
       Input.buttons[name] = { keys };
     },
-    getButton: (b) => {
+    buttonParse: (b, checkFnct) => {
       const button = Input.buttons[b];
       if (!button) return false;
       for (let i = 0; i < button.keys.length; i += 1) {
         const k = button.keys[i];
-        if (Input.getKey(k)) return true;
+        if (checkFnct(k)) return true;
       }
       return false;
     },
-    getButtonDown: (b) => {
-      const button = Input.buttons[b];
-      if (!button) return false;
-      for (let i = 0; i < button.keys.length; i += 1) {
-        const k = button.keys[i];
-        if (Input.getKeyDown(k)) return true;
-      }
-      return false;
-    },
+    getButton: b => Input.buttonParse(b, Input.getKey),
+    getButtonDown: b => Input.buttonParse(b, Input.getKeyDown),
+    getButtonUp: b => Input.buttonParse(b, Input.getKeyUp),
     getKey: k => Input.keys[k] > 0,
     getKeyDown: k => Input.keys[k] === Time.frame,
+    getKeyUp: k => Input.keys[k] === -Time.frame,
     getAxisHorizontal: () =>
       ((Input.getKey(68) || Input.getKey(39)) - (Input.getKey(65) || Input.getKey(37))),
     getAxisVertical: () =>
@@ -62,7 +57,7 @@ function BDOTJS() {
   });
   window.addEventListener('keyup', (e) => {
     const k = e.keyCode;
-    Input.keys[k] = 0;
+    Input.keys[k] = -(Time.frame + 1);
   });
 
   function LoopAndRemove(list, callback) {
