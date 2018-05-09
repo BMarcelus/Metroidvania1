@@ -62,6 +62,7 @@ function start() {
       this.direction = 1;
       this.team = 1;
       this.sustainVelocity = false;
+      this.hasGravity = true;
       this.canMove = true;
     }
     update() {
@@ -95,7 +96,7 @@ function start() {
       if (Input.getButtonDown('dash')) {
         this.dash(hi, Input.getAxisVertical());
       }
-      if (!this.sustainVelocity) {
+      if (this.hasGravity) {
         applyGravity.call(this);
       }
       applyVelocity.call(this);
@@ -104,12 +105,14 @@ function start() {
     }
     dash(hi, vi) {
       this.sustainVelocity = true;
+      this.hasGravity = false;
       // this.canMove = false;
       this.vx = hi * 20;
       this.vy = vi * 20;
       setTimeout(() => {
         this.sustainVelocity = false;
         this.canMove = true;
+        this.hasGravity = true;
         this.vy = 0;
       }, 100);
     }
