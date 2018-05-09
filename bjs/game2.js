@@ -5,6 +5,7 @@ function start() {
   Input.addButton('jump', [87, 38, 32]);
   Input.addButton('crouch', [83, 40]);
   Input.addButton('a', [74, 90]); // J and Z
+  Input.addButton('dash', [16]); // Left Shift, or both shifts actualy
   function boundToScreen() {
     const w = CE.width - this.w;
     const h = CE.height - this.h;
@@ -60,10 +61,17 @@ function start() {
       this.flipped = false;
       this.direction = 1;
       this.team = 1;
+      this.sustainVelocity = false;
+      this.canMove = true;
     }
     update() {
       const hi = Input.getAxisHorizontal();
-      this.vx = hi * Time.deltaTime * 10;
+      if (!this.sustainVelocity) {
+        this.vx *= 0.6;
+      }
+      if (this.canMove) {
+        this.x += hi * Time.deltaTime * 10;
+      }
       if (hi) {
         this.flipped = hi < 0;
         this.direction = 1 - (2 * this.flipped);
@@ -84,15 +92,31 @@ function start() {
       } else if (Input.getButtonUp('a')) {
         this.x -= this.direction * 20;
       }
-      applyGravity.call(this);
+      if (Input.getButtonDown('dash')) {
+        this.dash(hi, Input.getAxisVertical());
+      }
+      if (!this.sustainVelocity) {
+        applyGravity.call(this);
+      }
       applyVelocity.call(this);
       boundToScreen.call(this);
       this.world.boundToFloor(this, this.onGrounded);
     }
+    dash(hi, vi) {
+      this.sustainVelocity = true;
+      // this.canMove = false;
+      this.vx = hi * 20;
+      this.vy = vi * 20;
+      setTimeout(() => {
+        this.sustainVelocity = false;
+        this.canMove = true;
+        this.vy = 0;
+      }, 100);
+    }
     attack() {
       const s = 74;
-      const d = ((this.w + s + 20) / 2) * (1 - (2 * this.flipped));
-      let x = this.x + (this.w / 2) + d;
+      const d = ((this.w + s) / 2) * (1 - (2 * this.flipped));
+      let x = this.x + (this.w / 2) + d + this.vx;
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
       this.driver.addEntity(new HitBox(this, x, y, s, s));
@@ -106,6 +130,30 @@ function start() {
       this.grounded = true;
       this.vy = 0;
     }
+
+    onCollision(col) {
+      if (col.tag === 2) {
+        if (this.invul) return;
+        this.invul = true;
+        this.color = '#f00';
+        this.canMove = false;
+        this.sustainVelocity = true;
+        setTimeout(() => { this.color = '#faa'; }, 50);
+        this.vx = 10 * col.direction;
+        this.vy = -10;
+        // this.life -= 1;
+        // if (this.life <= 0) {
+        //   setTimeout(() => { this.shouldDelete = true; }, 200);
+        // } else {
+        setTimeout(() => {
+          this.color = '#000';
+          this.invul = false;
+          this.canMove = true;
+          this.sustainVelocity = false;
+        }, 200);
+        // }
+      }
+    }
   }
   class Enemy extends Entity {
     constructor(world, ...args) {
@@ -115,10 +163,30 @@ function start() {
       this.vy = 0;
       this.gravity = 1;
       this.color = 'blue';
-      this.life = 10;
+      this.life = 3;
+      this.mx = 0;
+      this.team = 2;
+      this.flipped = false;
+      this.direction = 1;
       this.onGrounded = this.onGrounded.bind(this);
     }
     update() {
+      if (Math.random() > 0.95) {
+        if (Math.random() > 0.5) {
+          this.mx = 1;
+        } else {
+          this.mx = -1;
+        }
+      }
+      if (Math.random() > 0.95) {
+        this.mx = 0;
+      }
+      this.x += this.mx * 3;
+      if (Time.frame % 60 === 0) this.attack();
+      if (this.mx) {
+        this.flipped = this.mx < 0;
+        this.direction = 1 - (2 * this.flipped);
+      }
       applyGravity.call(this);
       applyVelocity.call(this);
       boundToScreen.call(this);
@@ -126,6 +194,8 @@ function start() {
     }
     onCollision(col) {
       if (col.tag === 1) {
+        if (this.invul) return;
+        this.invul = true;
         this.color = '#0ff';
         setTimeout(() => { this.color = '#2af'; }, 50);
         this.vx = 10 * col.direction;
@@ -134,9 +204,17 @@ function start() {
         if (this.life <= 0) {
           setTimeout(() => { this.shouldDelete = true; }, 200);
         } else {
-          setTimeout(() => { this.color = 'blue'; }, 200);
+          setTimeout(() => { this.color = 'blue'; this.invul = false; }, 200);
         }
       }
+    }
+    attack() {
+      const s = 74;
+      const d = ((this.w + s) / 2) * (1 - (2 * this.flipped));
+      let x = this.x + (this.w / 2) + d + this.vx;
+      x -= s / 2;
+      const y = (this.y + (this.h / 2)) - (s / 2);
+      this.driver.addEntity(new HitBox(this, x, y, s, s));
     }
     onGrounded() {
       this.grounded = true;
@@ -166,8 +244,9 @@ function start() {
   const player = new Player(world, 100, 100, 50, 100);
   setInterval(() => {
     main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
-  }, 1000);
+  }, 5000);
   main.addEntity(player);
+  main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
   main.start();
 }
 window.onload = start;
