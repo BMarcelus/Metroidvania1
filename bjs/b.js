@@ -10,16 +10,6 @@ function BDOTJS() {
       }
     }
   }
-  // function LoopAndRemove2(list, callback) {
-  //   for (let i = 0; i < list.length; i += 1) {
-  //     const e = list[i];
-  //     const shouldDelete = callback(e);
-  //     if (shouldDelete) {
-  //       list.splice(i, 1);
-  //       i -= 1;
-  //     }
-  //   }
-  // }
 
   const Time = {
     time: 0,
@@ -63,21 +53,6 @@ function BDOTJS() {
         }
         interval.frames -= 1;
       });
-      // LoopAndRemove2(Time.timeouts, (e) => {
-      //   if (e.frames <= 0) {
-      //     e.callback();
-      //     return true;
-      //   }
-      //   e.frames -= 1;
-      //   return false;
-      // });
-      // Time.intervals.forEach((e) => {
-      //   e.timer += 1;
-      //   if (e.timer > e.frames) {
-      //     e.timer = 0;
-      //     e.callback();
-      //   }
-      // });
     },
     setFramedTimeout: (callback, frames) => {
       const id = Time.timeruuid;

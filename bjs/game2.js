@@ -4,7 +4,9 @@ function start() {
   const { CE, canvas } = SetupCanvas();
   Input.addButton('jump', [87, 38, 32]);
   Input.addButton('crouch', [83, 40]);
-  Input.addButton('a', [74, 90]); // J and Z
+  Input.addButton('attack', [74, 90]); // J and Z
+  Input.addButton('shoot', [75]);
+  Input.addButton('e', [69]);
   Input.addButton('dash', [16]); // Left Shift, or both shifts actualy
   function boundToScreen() {
     const w = CE.width - this.w;
@@ -48,6 +50,28 @@ function start() {
       this.life -= 1;
     }
   }
+
+  class Projectile extends Entity {
+    constructor(vx, vy, speed, damage, ...args) {
+      super(...args);
+      this.vx = vx * speed;
+      this.vy = vy * speed;
+      this.speed = speed;
+      this.damage = damage;
+      this.tag = 1;
+      this.direction = vx;
+    }
+    update() {
+      applyVelocity.call(this);
+    }
+
+    onCollision(col) {
+      if (col.team === 2) {
+        this.shouldDelete = true;
+      }
+    }
+  }
+
   class Player extends Entity {
     constructor(world, ...args) {
       super(...args);
@@ -87,11 +111,14 @@ function start() {
         this.h = this.startH;
         this.y -= this.startH / 2;
       }
-      if (Input.getButtonDown('a')) {
+      if (Input.getButtonDown('attack')) {
         this.x += this.direction * 20;
         this.attack();
-      } else if (Input.getButtonUp('a')) {
+      } else if (Input.getButtonUp('attack')) {
         this.x -= this.direction * 20;
+      }
+      if (Input.getButtonDown('shoot')) {
+        this.shoot();
       }
       if (Input.getButtonDown('dash')) {
         this.dash(hi, Input.getAxisVertical());
@@ -123,6 +150,17 @@ function start() {
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
       this.driver.addEntity(new HitBox(this, x, y, s, s));
+    }
+    shoot() {
+      const w = 9;
+      const h = 3;
+      const d = ((this.w + w) / 2) * (1 - (2 * this.flipped));
+      let x = this.x + (this.w / 2) + d + this.vx;
+      x -= w / 2;
+      const y = (this.y + (this.h / 2)) - (h / 2);
+      // constructor(vx, vy, speed, damage, ...args)
+      const projectile = new Projectile(1 - (2 * this.flipped), 0, 20, 3, x, y, w, h);
+      this.driver.addEntity(projectile);
     }
     jump() {
       if (!this.grounded) return;
@@ -158,6 +196,7 @@ function start() {
       }
     }
   }
+
   class Enemy extends Entity {
     constructor(world, ...args) {
       super(...args);
@@ -246,8 +285,10 @@ function start() {
   const world = new World();
   const player = new Player(world, 100, 100, 50, 100);
   Time.setFramedInterval(() => {
-    main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
-  }, 50);
+    if (Input.getButtonDown('e')) {
+      main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
+    }
+  }, 1);
   main.addEntity(player);
   main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
   main.start();

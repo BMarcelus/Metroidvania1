@@ -1,0 +1,1161 @@
+<style>
+  canvas {
+    background: black;
+  }
+</style>
+<canvas id="gc"></canvas>
+<script>
+
+var CE = document.getElementById('gc');
+CE.width = 480;
+CE.height = 480;
+var canvas = CE.getContext('2d');
+
+var pixelSize = 20;
+var worldBottom = 400;
+
+var globalGravity = .8;
+var entities = [];
+var hitboxes = [];
+
+var controls = {
+  right: function(player) { player.mx += 1; },
+  left: function(player) { player.mx += -1; },
+  jump: {start: function(player) { player.jump(); }},
+  attack: {start: function(player) { player.attack(); }},
+  crouch: function(player) { player.crouch(); }
+};
+
+var keyMap = {
+  '65': controls.left,
+  '68': controls.right,
+  '83': controls.crouch,
+  '37': controls.left,
+  '39': controls.right,
+  '40': controls.crouch,
+  '32': controls.jump,
+  '87': controls.jump,
+  '74': controls.attack,
+};
+
+var keys = [];
+
+var playerSheet = playerSprite();
+var enemySheet = enemySprite();
+var sword = swordSprite();
+var worldImage = document.createElement('canvas');
+worldImage.width = CE.width;
+worldImage.height = CE.height;
+
+var world;
+
+var world1=[
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1],
+  [1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1],
+  [1,0,0,1,1,0,0,0,1,1,0,0,0,1,1,1],
+  [1,3,0,1,1,0,1,1,1,1,1,0,0,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
+var world2=[
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [1,0,0,0,0,0,0,0,6,0,0,0,0,0,0,2],
+  [1,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1],
+  [1,0,0,0,0,1,1,1,1,1,1,1,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [2,0,0,0,0,0,4,0,0,0,0,4,0,0,0,2],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1],
+]
+var world3=[
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [2,0,1,0,0,0,4,0,0,0,1,1,1,0,0,2],
+  [2,0,0,4,1,0,1,1,1,0,0,4,0,0,0,2],
+  [1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1],
+  [1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,0,0,1,1,1,0,1,1,1,1],
+  [1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1],
+]
+var world4 = [
+  [1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1],
+  [2,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,0,0,1,1,0,0,0,1,1,1,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,5,0,0,1],
+  [2,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1],
+  [2,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
+
+var world5 = [
+  [0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,1],
+  [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1],
+  [1,0,0,1,1,0,0,0,0,0,1,1,0,0,0,1],
+  [2,0,0,1,1,0,0,0,0,0,1,1,0,0,0,2],
+  [2,0,0,1,1,0,0,4,4,0,1,1,0,0,0,2],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
+var world6 = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,1],
+  [1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1],
+  [1,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,1,1,1,0,0,0,0,0,0,0,2],
+  [1,0,0,0,0,1,1,1,0,0,0,0,0,0,0,2],
+  [1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,7,0,0,0,1,1],
+  [1,0,0,0,0,0,0,0,0,1,1,1,0,0,1,1],
+  [1,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
+var world7 = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [2,0,0,4,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,4,0,1],
+  [1,0,0,0,0,0,0,4,4,0,0,0,1,1,1,1],
+  [1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1],
+  [1,0,4,0,0,0,0,1,1,0,0,0,0,0,0,1],
+  [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+  [1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,2],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
+var world8 = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,8,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
+
+var WorldMap = [
+  [world1, world2, world3, world7, world8],
+  [world6, world5, world4],
+]
+var worldMap = [];
+var wi = [0,0];
+
+var message = "wasd to move";
+
+function swordSprite() {
+  var sprite = document.createElement('canvas');
+  sprite.width = 16;
+  sprite.height = 32;
+  var canvas = sprite.getContext('2d');
+  var hiltWidth = sprite.width/4;
+  var hiltHeight = sprite.height/4;
+  var swordlength = sprite.height - hiltHeight;
+  var swordWidth = hiltWidth;
+
+  canvas.fillStyle = 'brown';
+  canvas.fillRect(sprite.width/2-hiltWidth/2, sprite.height-hiltHeight, hiltWidth,hiltHeight);
+
+  canvas.fillStyle = "#ddd";
+  canvas.fillRect(sprite.width/2-swordWidth/2, 0, swordWidth, swordlength);
+  return sprite;
+}
+
+function drawPlayer(canvas, size, grd) {
+  var headSize = size*3/8;
+  var bodySize = size/3;
+  var legSize = size/6;
+  var legWidth = legSize/2;
+  canvas.fillStyle=grd;
+
+  canvas.lineWidth = 1;
+  canvas.fsRect = function(x,y,w,h) {
+    canvas.save();
+    canvas.translate(x+w/2,y+h/2);
+    canvas.fillRect(-w/2,-h/2,w,h);
+    canvas.restore();
+  }
+
+  canvas.fsRect(size/2-bodySize/4-legWidth/2, size-legSize, legWidth, legSize);
+  canvas.fsRect(size/2+bodySize/4-legWidth/2, size-legSize, legWidth, legSize);
+  canvas.fsRect(size/2-bodySize/2, size-legSize-bodySize, bodySize, bodySize);
+  canvas.fsRect(size/2-headSize/2+2, size-legSize-bodySize-headSize, headSize,headSize);
+  canvas.translate(size,0);
+
+  canvas.fsRect(size/2-bodySize/4-legSize, headSize+bodySize, legSize, legWidth);
+  canvas.fsRect(size/2+bodySize/4-legWidth/2, headSize+bodySize, legSize, legWidth);  
+  canvas.fsRect(size/2-bodySize/2, headSize, bodySize, bodySize);
+  canvas.fsRect(size/2-headSize/2+2, 0, headSize,headSize);
+
+  canvas.translate(-size,size);
+
+  var offset = size/6;
+  canvas.fsRect(size/2-bodySize/4-legWidth/2, headSize+bodySize, legWidth, legSize);  
+  canvas.fsRect(size/2+bodySize/4-legWidth/2, headSize+bodySize, legSize, legWidth);  
+  canvas.fsRect(size/2-bodySize/2-offset/2, headSize, bodySize, bodySize);
+  canvas.fsRect(size/2-headSize/2-offset, 0, headSize,headSize);
+
+  canvas.translate(size,0);
+  canvas.fsRect(size/2-bodySize/4-legSize, size-legSize, legSize, legWidth);  
+  canvas.fsRect(size/2+bodySize/4-legWidth/2, size-legSize, legWidth, legSize);  
+  canvas.fsRect(size/2-bodySize/2, size-legSize-bodySize, bodySize, bodySize);
+  canvas.fsRect(size/2-headSize/2+offset, size-legSize-bodySize-headSize+2, headSize,headSize);
+
+  canvas.translate(-size, size);
+  
+  var offset = bodySize/2
+  canvas.fsRect(size/2-bodySize/4-legWidth/2, size-legSize, legWidth, legSize);
+  canvas.fsRect(size/2+bodySize/4-legWidth/2, size-legSize, legWidth, legSize);
+  canvas.fsRect(size/2-bodySize/2, size-legSize-bodySize+offset, bodySize, bodySize);
+  canvas.fsRect(size/2-headSize/2+2, size-legSize-bodySize-headSize+offset*2, headSize,headSize);
+}
+
+
+function enemySprite() {
+  var sheet = document.createElement('canvas');
+  var size = 32;
+  sheet.spriteSize = 32;
+  var animations = 3;
+  var frames = 3;
+  sheet.width = size*frames;
+  sheet.height = size*animations;
+  var canvas = sheet.getContext('2d');
+
+  var gx = size/2;
+  var gy = size/2;
+  var r = size;
+  var grd=canvas.createRadialGradient(gx, gy, 0, gx, gy, r);
+  grd.addColorStop(0,"rgba(0,0,0,1)");
+  grd.addColorStop(1,"rgba(255,0,0,1)");
+  drawPlayer(canvas, size,grd);
+  return sheet;
+}
+
+function playerSprite() {
+  var sheet = document.createElement('canvas');
+  var size = 32;
+  sheet.spriteSize = 32;
+  var animations = 3;
+  var frames = 3;
+  sheet.width = size*frames;
+  sheet.height = size*animations;
+  var canvas = sheet.getContext('2d');
+
+  var gx = size/2;
+  var gy = size/2;
+  var r = size;
+  var grd=canvas.createRadialGradient(gx, gy, 0, gx, gy, r);
+  grd.addColorStop(0,"rgba(0,0,0,1)");
+  grd.addColorStop(1,"rgba(255,255,255,1)");
+  drawPlayer(canvas, size,grd);
+  return sheet;
+}
+
+function moveAToB(a,b, step) { //linearmove
+  if(Math.abs(a-b)<=step)return b;
+  if(a<b)return a+step;
+  if(a>b)return a-step;
+}
+
+function solid(tile) {
+  return tile==1;
+}
+function exit(tile) {
+  return tile==2;
+}
+
+function groundCollide(entity) {
+  var x = Math.floor(entity.x/CE.width*world.length);
+  var y = Math.floor(entity.y/CE.height*world.length);
+  var x2 = Math.floor((entity.x-entity.vx)/CE.width*world.length);
+  var oob = false;
+  if(x<0) {
+    x = 0;
+    entity.x=0;
+  }
+  if(x>=world.length) {
+    x = world.length-1;
+    entity.x = CE.width;
+  }
+  if(y<0) {
+    y = 0;
+    entity.y = 0;
+  }
+  if(y>=world.length) {
+    y = world.length-1;
+    entity.y = y*CE.height/world.length;
+    oob=true;    
+  }
+  if(solid(world[y][x])) {
+    entity.y = y*CE.height/world.length;
+    entity.vy = 0;
+    if(entity.groundCollide)
+    entity.groundCollide();
+  }
+  if(entity.player && oob&&exit(world[y][x])) {
+    loadExit(0,1, entity);
+  }
+}
+function ceilingCollide(entity, dh) {
+  var x = Math.floor(entity.x/CE.width*world.length);
+  var y = Math.floor((entity.y-dh)/CE.height*world.length);
+  var oob = false;
+  if(x<0) {
+    x = 0;
+    entity.x=0;
+  }
+  if(x>=world.length) {
+    x = world.length-1;
+    entity.x = CE.width;
+  }
+  if(y<0) {
+    y = 0;
+    // entity.y = 0;
+    oob=true;    
+  }
+  if(y>=world.length) {
+    y = world.length-1;
+    // entity.y = y*CE.height/world.length;
+  }
+  if(solid(world[y][x])) {
+    entity.y = (y+1)*CE.height/world.length+dh;
+    entity.vy = 0;
+  }
+  if(entity.player && oob && exit(world[y][x])) {
+    loadExit(0,-1, entity);
+  }
+}
+function wallCollide(entity,dx,dh) {
+  var x = Math.floor((entity.x+dx)/CE.width*world.length);
+  var y = Math.floor((entity.y-1)/CE.height*world.length);
+  var y2 = Math.floor((entity.y-dh)/CE.height*world.length);
+  var oob=false;
+  if(x<0) {
+    x = 0;
+    entity.x=0;
+    oob=true;
+  }
+  if(x>=world.length) {
+    x = world.length-1;
+    entity.x = CE.width;
+    oob=true;
+  }
+  if(y<0) {
+    y = 0;
+    entity.y = 0;
+  }
+  if(y>=world.length) {
+    y = world.length-1;
+    entity.y = y*CE.height/world.length;
+  }
+  if(solid(world[y][x]) || (y2>=0&&solid(world[y2][x]))) {
+    if(dx<0) {
+      x+=1;
+      dx += 1;
+    }
+    entity.x = x*CE.width/world.length-dx;
+    entity.vx = 0;
+    if(dx>0)
+    entity.onWall=1;
+    if(dx<0)
+    entity.onWall=2;
+  }
+  if(!entity.player)return;
+  var c = world[y][x];
+  if(oob && exit(c)) {
+    var d = 1-2*(x<1)
+    loadExit(d,0, entity);
+  } else if(c==5) {
+    world[y][x]=0;
+    entity.maxAirJumps++;
+    if(entity.maxAirJumps==1)
+      message="Double Jump Unlocked";
+    else
+      message="Air Jumps +1";
+    drawWorld();      
+  } else if(c==6) {
+    world[y][x]=0;
+    entity.hasSword=true;
+    message = "Press J to Strike";
+    drawWorld();    
+  } else if(c==7) {
+    world[y][x]=0;
+    entity.canWallJump=true;
+    message = "Wall Jump Unlocked";
+    drawWorld();    
+  }
+}
+
+function Entity(){
+  return {
+    x: 0, y: 0, w: 20, h: 20,
+    gravity: globalGravity,
+    vx: 0, vy: 0, update: Entity.update, draw: Entity.draw,
+  }
+}
+Entity.update = function() {
+  if (this.vy>0&&this.onWall) {
+    this.vy += this.gravity/5;
+  } else {
+    this.vy += this.gravity;
+  }
+  this.y += this.vy;
+
+  var h = this.h-4;
+  if(this.crouching)h=h/2;
+  if(this.vy>0) {
+    groundCollide(this);
+  }
+  if(this.vy<0) {
+    ceilingCollide(this, h);
+  }
+  this.onWall = false;
+  if(this.vx>0) {
+    wallCollide(this, this.w/4, h);
+  }
+  if(this.vx<0) {
+    wallCollide(this, -this.w/4, h);
+  }
+  this.x += this.vx;
+}
+Entity.draw = function() {
+  canvas.fillStyle = "red";
+  canvas.fillRect(this.x-this.w/2,this.y-this.h,this.w,this.h);  
+}
+
+function Platformer() {
+  return {
+    x: 0, y: 0, w: 64, h: 64,
+    gravity: globalGravity,
+    vx: 0, vy: 0,
+    mx: 0, speed: 5, jumpPower: 10,
+    onGround: false,
+    flipped: false,
+    canFlip: true,
+    update: Platformer.update, draw: Entity.draw,
+    jump: Platformer.jump,
+    groundCollide: Platformer.groundCollide,
+  }
+}
+Platformer.update = function() {
+  if (this.canFlip && this.mx) { this.flipped = this.mx < 0; }
+  if(this.wallJumping) this.wallJumping --;
+  else
+  this.vx = moveAToB(this.vx,this.mx*this.speed,this.speed/3);  
+  Entity.update.call(this);
+  if(this.vy>this.gravity*3)this.onGround=false;
+}
+Platformer.wallJump = function() {
+  var dx = 10;
+  if(this.onWall==1)dx=-dx;
+  this.onWall =false;
+  this.vy = -this.jumpPower;
+  this.vx = dx;
+  this.wallJumping=10;
+}
+Platformer.jump = function() {
+  
+  if(this.onGround) {
+    this.airJumps= 0;
+  } else {
+    if(this.onWall && this.canWallJump) return Platformer.wallJump.call(this);    
+    this.airJumps++;
+  }
+  if(this.airJumps > this.maxAirJumps) return;
+  this.vy = -this.jumpPower;
+  this.onGround = false;
+}
+Platformer.groundCollide = function() {
+  this.onGround = true;
+  this.airJumps = 0;
+  this.wallJumping=false;
+}
+
+function Hitbox(x, y, w, h, life, team, vx, vy) {
+  return {
+    x: x, y: y, w: w, h: h,
+    life: life || 5,
+    vx: vx, vy: vy,
+    draw: Hitbox.draw,
+    update: Hitbox.update,
+    team: team,
+  }
+}
+Hitbox.draw = function() {
+  canvas.fillStyle="red";
+  canvas.fillRect(this.x,this.y,this.w,this.h);
+}
+Hitbox.update = function() {
+  this.life --;
+  if(this.life <= 0) this.shouldDelete = true;
+}
+
+function Fighter() {
+  return {
+    x: CE.width/2, y: 0, w: 32, h: 32,
+    gravity: globalGravity,
+    health: 10,
+    maxHealth: 10,
+    team: 0,
+    vx: 0, vy: 0,
+    mx: 0, speed: 5, jumpPower: 12,
+    onGround: false,
+    animating: false,
+    animationTimer: 0,
+    frameCount: 0,
+    canAct: true,
+    animationFrame: 0,
+    animationIndex: 0,
+    crouching: false,
+    canCollide: true,
+    invincibleCount: 0,
+    hitboxPad: 0,
+    airJumps: 0,
+    maxAirJumps: 0,
+    hasSword: false,
+    canWallJump:false,
+    spriteSheet: playerSheet,
+    animation: Fighter.attackAnimation,
+    update: Fighter.update, draw: Fighter.draw,
+    jump: Platformer.jump,
+    groundCollide: Platformer.groundCollide,
+    attack: Fighter.attack,
+    animate: Fighter.animate,
+    createHitbox: Fighter.createHitbox,
+    crouch: Fighter.crouch,
+    getHurtBox: Fighter.getHurtBox,
+    getHit: Fighter.getHit,
+  }
+}
+Fighter.getHit = function(h) {
+  if(this.invincibleCount>0)return;
+  this.invincibleCount=10;
+  this.vx = h.vx;
+  this.vy = h.vy;
+  this.health -= 1;
+  if(this.health<=0)this.shouldDelete=true;
+}
+Fighter.getHurtBox = function() {
+  var h = this.h-4;
+  if(this.crouching) h=h/2;
+  var w = this.w/2;
+  return {
+    x: this.x-w/2, y: this.y-h, w: w, h: h
+  };
+}
+Fighter.animate = function() {
+  if(this.frameCount>=this.animation.length) {
+    this.canAct=true;
+    this.animating= false;
+    this.animationIndex=0;
+    return;
+  }
+  var frame = this.animation[this.frameCount];
+  if(this.animationTimer == 0) {
+    if(frame.start)frame.start.call(this);
+  }
+  if(frame.do)frame.do.call(this);
+  this.animationTimer ++;
+  if(this.animationTimer > frame.length) {
+    this.frameCount ++;
+    this.animationTimer = 0;
+  }
+}
+Fighter.update = function() {
+  this.animationIndex=0;
+  if(this.invincibleCount>0)this.invincibleCount--;
+  if(this.mx!=0) {
+    this.animationFrame = Math.floor(Math.abs(this.x)/30)%2
+  } else {
+    this.animationFrame=0;
+  }
+  if(this.crouching) {
+    this.animationIndex = 2;
+    this.animationFrame = 0;
+    if(this.onGround) this.mx = 0;
+  }
+  if(this.animating) {
+    this.animate();
+  }
+  if(this.canAct&&this.airJumps>0) {
+    this.rolling=true;
+  } else {
+    this.rolling=false;
+  }
+  this.canFlip = (!this.rolling&&this.canAct);
+  Platformer.update.call(this);
+
+  if(this.x<0)this.x=0;
+  if(this.x>CE.width)this.x=CE.width;
+}
+Fighter.attack = function() {
+  if(!this.hasSword)return;
+  if(!this.canAct) return;
+  if(this.mx!=0)
+  this.flipped= this.mx<0;
+  this.animating=true;
+  this.animationTimer=0;
+  this.canAct=false;
+  this.frameCount=0;
+  // this.animation = Fighter.attackAnimation;
+  // entities.push(Hitbox(this.x+this.w * (1-2*this.flipped),this.y,this.w,this.h));
+}
+Fighter.createHitbox = function() {
+  var pad = this.hitboxPad;
+  var w = this.w*1.4;
+  hitboxes.push(Hitbox(this.x+(-w) * (this.flipped) + this.vx,this.y-pad-this.h,
+    w,this.h+pad*2, 2, this.team, 14*(1-2*this.flipped), -10));  
+}
+Fighter.attackAnimation = [
+  { length: 3, do: function() {
+    if(this.onGround) this.mx = 0;
+    this.animationIndex = 1;
+    this.animationFrame = 0;
+    }},
+  { length: 5, do: function() {
+    this.createHitbox();
+    if(this.onGround)this.mx = 0; 
+    this.animationIndex = 1;
+    this.animationFrame = 1;
+  }},
+  { length: 3, do: function() {
+    if(this.onGround) this.mx = 0;
+    this.animationFrame = 1;
+    this.animationIndex = 1;
+  }},
+];
+Fighter.draw = function() {
+  var size = this.spriteSheet.spriteSize;
+  canvas.save();
+  canvas.translate(this.x,this.y);
+  if(this.flipped)canvas.scale(-1,1);
+  if(this.rolling) {
+    canvas.translate(0,-this.h/2);
+    canvas.rotate((this.jumpPower+this.vy)/this.jumpPower*Math.PI);
+    canvas.translate(0,this.h/2);
+    this.animationIndex=2;
+    this.animationFrame=0;
+  }
+  canvas.drawImage(this.spriteSheet, this.animationFrame*size,this.animationIndex*size,size,size,
+    -this.w/2,-this.h,this.w,this.h);
+    if(!this.hasSword)return canvas.restore();
+  canvas.translate(-this.w/4, -this.h/2);
+  if(this.animationIndex==2) {
+    canvas.translate(0,7);
+  }
+  if(this.animationIndex==0&&this.animationFrame==1) {
+    canvas.translate(0,-4);
+  }
+  if(this.animationIndex==1&&this.animationFrame==0) {
+    canvas.translate(-5,-5);
+    canvas.rotate((Math.random()-.5)*Math.PI/20);    
+    canvas.rotate(-Math.PI/4);
+  }
+  if(this.animationIndex==1&&this.animationFrame==1) {
+    canvas.translate(20,5);        
+    canvas.rotate(Math.PI/2);
+  }
+  canvas.drawImage(sword, -sword.width/2, -sword.height);
+  canvas.restore();
+}
+Fighter.crouch = function() {
+  this.crouching = true;
+}
+
+function Enemy(target) {
+  var enemy = Fighter();
+  enemy.spriteSheet = enemySheet;
+  enemy.team=1;
+  enemy.animation=Enemy.attackAnimation;
+  enemy.update = Enemy.update;
+  enemy.target= target;
+  enemy.health=3;
+  enemy.hitboxPad = -enemy.w/5;
+  enemy.speed=enemy.speed*.5;
+  enemy.hasSword=true;
+  return enemy;
+}
+Enemy.update = function() {
+  var dx = this.target.x-this.x;
+  var dy = this.target.y-this.y;
+  if(Math.random()>.8) {
+    this.mx = 0;
+    if(Math.random() >.4) {
+      if(dx<0)this.mx=-1;
+      else this.mx = 1;
+    }
+    if(Math.random()>.9) {
+      this.mx=-this.mx;
+    }
+    if(dy<0&&Math.random()>.8){ 
+      this.jump();
+    }
+  }
+
+  if(Math.abs(dx)<this.w && Math.abs(dy)<this.h) {
+    this.attack();
+  }
+
+  Fighter.update.call(this);
+  
+}
+Enemy.attackAnimation = [
+  { length: 10, do: function() {
+    if(this.onGround) this.mx = 0;
+    this.animationIndex = 1;
+    this.animationFrame = 0;
+    }},
+  { length: 5, do: function() {
+    this.createHitbox();
+    if(this.onGround)this.mx = 0; 
+    this.animationIndex = 1;
+    this.animationFrame = 1;
+  }},
+  { length: 10, do: function() {
+    if(this.onGround) this.mx = 0;
+    this.animationFrame = 1;
+    this.animationIndex = 1;
+  }},
+];
+
+function Boss(target) {
+  return {
+    x: CE.width/2,
+    y: CE.height/2,
+    w: 100,
+    h: 100,
+    phase: 1,
+    health: 10,
+    maxHealth: 10,
+    target:target,
+    angle: 0,
+    team:1,
+    canCollide: true,
+    state: 0,
+    update: Boss.update,
+    draw: Boss.draw,
+    getHit: Boss.getHit,
+    getHurtBox: Boss.getHurtBox,
+    shootCount: 0,
+    shootSpeed: 50,
+    waitTime:150,
+    waitChance: 0.2,
+    turnSpeed: Math.PI/200,
+  }
+}
+Boss.newState = function() {
+  this.state = Math.floor(Math.random()*3);
+}
+Boss.update = function() {
+  var dx = this.target.x-this.x;
+  var dy = this.target.y-this.y;
+  var angle = Math.atan2(dy,dx);
+  if(!this.invincibleCount)
+  this.angle = moveAToB(this.angle, angle, this.turnSpeed);
+  if(this.invincibleCount)this.invincibleCount--;
+  var x=this.x,y=this.y;
+  var h = 64;
+  if(this.phase==2) {
+    h = 100;
+  }
+  if(this.state==0) {
+    x=CE.width/2;
+    y=CE.height/2;
+  }
+  if(this.state==1) {
+    x=CE.width/2-64;
+    y=CE.height/2-h;
+  }
+  if(this.state==2) {
+    x=CE.width/2+64;
+    y=CE.height/2-h;
+  }
+    this.x = moveAToB(this.x,x, 1);
+    this.y = moveAToB(this.y,y, 1);
+    if(this.x==x&&this.y==y)Boss.newState.call(this);
+
+  if(this.shootCount<=0){
+    var vx = Math.cos(this.angle)*5;
+    var vy = Math.sin(this.angle)*5;
+    entities.push(Projectile(this.x,this.y,10,1,vx,vy));
+    this.shootCount=this.shootSpeed;
+    if(Math.random()<this.waitChance) this.shootCount+=this.waitTime;
+  } else {
+    this.shootCount--;
+  }
+  if(this.health==0) {
+    if(this.phase==1){
+      this.health=15;
+      this.maxHealth = 15;
+      this.target.health=this.target.maxHealth;
+      world[14][8] = 5;
+      drawWorld();
+      this.phase=2;
+      this.waitTime = 50;
+      this.shootCount=this.waitTime;
+      this.waitChance = 0.2;
+      this.shootSpeed=20;
+      this.w = 128;
+      this.h = 128;
+      this.turnSpeed=Math.PI/100;
+    } else {
+      this.shouldDelete=true;
+      setTimeout(function() {
+        win();
+      }, 2000);
+    }
+  }
+}
+Boss.getHurtBox = function() {
+  return {
+    x: this.x-this.w/2, y:this.y-this.h/2, w:this.w,h:this.h
+  }
+}
+Boss.getHit = function() {
+  if(this.invincibleCount)return;
+  this.health--;
+  this.invincibleCount = 10;
+}
+Boss.draw = function() {
+  canvas.save();
+  canvas.translate(this.x,this.y);
+  canvas.rotate(this.angle);
+  canvas.beginPath();
+  canvas.arc(0,0,this.w/2,0,Math.PI*2);
+  canvas.fillStyle="red";
+  if(this.invincibleCount && Math.floor(this.invincibleCount/5)%2==0) {
+    canvas.fillStyle="#d00";
+    canvas.fill();
+    canvas.beginPath();
+    canvas.arc(this.w/4,0,this.w/4,0,Math.PI*2);
+    canvas.fillStyle="#306";
+    canvas.fill();
+  } else {
+    canvas.fill();
+    canvas.beginPath();
+    canvas.arc(this.w/4,0,this.w/4,0,Math.PI*2);
+    canvas.fillStyle="#008";
+    if(this.shootCount<this.shootSpeed)canvas.fillStyle="#04a";
+    canvas.fill();
+  }
+  canvas.restore();
+  canvas.fillStyle="red";
+  canvas.fillRect(CE.width-240,20,240*this.health/this.maxHealth,20);
+}
+
+function Projectile(x,y,r,d,vx,vy) {
+  return {
+    x:x,y:y,r:r,d:d,vx:vx,vy:vy,
+    update: Projectile.update,
+    draw: Projectile.draw,
+    groundCollide: Projectile.groundCollide,
+    life: 100
+  }
+}
+Projectile.update = function() {
+  hitboxes.push(Hitbox(this.x-this.r,this.y-this.r,this.r*2,this.r*2,2,1,this.vx,this.vy));
+  this.x+=this.vx;
+  this.y+=this.vy;
+  this.life--;
+  if(this.life<0)this.shouldDelete=true;
+  // groundCollide(this);
+}
+Projectile.groundCollide = function() {
+  this.shouldDelete=true;
+}
+Projectile.draw = function() {
+  canvas.fillStyle="red";
+  canvas.beginPath();
+  canvas.arc(this.x,this.y,this.r,0,Math.PI*2);
+  canvas.fill();
+}
+
+function collides(a,b) {
+  return a.x+a.w>=b.x && a.x<=b.x+b.w && a.y+a.h>=b.y && a.y<=b.y+b.h;
+}
+
+
+function update() {
+  // if(Math.random()>.9 && Math.random()>.9) {
+  //   entities.push(Enemy());
+  // }
+  for (var i = 0; i < entities.length; i++) {
+    var e = entities[i];
+    e.update();
+    if(e.shouldDelete) {
+      entities.splice(i,1);
+      i--;
+    }
+  }
+  for (var i = 0; i < hitboxes.length; i++) {
+    var h = hitboxes[i];
+    h.update();
+    for (var j=0; j<entities.length; j++) {
+      var e = entities[j];
+      if(e.team==h.team || !e.canCollide)continue;
+      if(collides(h, e.getHurtBox())) {
+        e.getHit(h);
+      }
+    }
+    if(h.shouldDelete) {
+      hitboxes.splice(i,1);
+      i--;
+    }
+  }
+}
+
+function loadExit(dx, dy, player) {
+  wi[1]+=dx;
+  wi[0]+=dy;
+  if(dx) {
+    if(player.x>10) {
+      player.x=0;
+    } else {
+      player.x = CE.width-10;
+    }
+  }
+  if(dy) {
+    if(player.y>100) {
+      player.y=0;
+    } else {
+      player.y = CE.height-10;
+      player.vy = -player.jumpPower;
+    }
+  }
+  if(wi[0]<0)wi[0]=0;
+  loadWorld(worldMap[wi[0]][wi[1]], player);
+}
+
+function copyWorld(world) {
+  var result = [];
+  for(var i =0;i<world.length;i++) {
+    var row = [];
+    for(var j=0;j<world[i].length;j++){
+      row[j] = world[i][j];
+    }
+    result.push(row);
+  }
+  return result;
+}
+function copyMap(world) {
+  var result = [];
+  for(var i =0;i<world.length;i++) {
+    var row = [];
+    for(var j=0;j<world[i].length;j++){
+      row[j] = copyWorld(world[i][j]);
+    }
+    result.push(row);
+  }
+  return result;
+}
+
+function loadWorld(worldtoload, player) {
+  entities = [player];
+  world=worldtoload;
+  var size =CE.width/(world.length);
+  for(var i =0;i<world.length;i++) {
+    var row = world[i];
+    for (var j=0; j<row.length;j++) {
+      var c = row[j];
+      // if(c==3) {
+      //   player.x = (j+.5)*size;
+      //   player.y = i*size;
+      // }
+      if(c==4) {
+        var enemy = Enemy(player);
+        enemy.x = (j+.5)*size;
+        enemy.y = i*size;
+        entities.push(enemy);
+      }
+      if(c==8) {
+        entities.push(Boss(player));
+      }
+    }
+  }
+  drawWorld();
+}
+
+function drawWorld() {
+  var canvas = worldImage.getContext('2d');
+  canvas.clearRect(0,0,worldImage.width,worldImage.height);
+  var size =CE.width/(world.length);
+  for(var i =0;i<world.length;i++) {
+    var row = world[i];
+    for (var j=0; j<row.length;j++) {
+      var c = row[j];
+      if(c==1) {
+        canvas.fillStyle = "gray";
+        canvas.fillRect(j*size,i*size,size,size);
+      } else if(c==5) {
+        canvas.fillStyle="cyan";
+        var pad = size/8;
+        canvas.fillRect(j*size+pad,i*size+pad, size-pad*2,size-pad*2);
+      } else if(c==6) {
+        canvas.drawImage(sword, j*size,i*size,size,size);
+      } else if(c==7) {
+        canvas.fillStyle="#28b";
+        var pad = size/8;
+        canvas.fillRect(j*size+pad,i*size+pad, size-pad*2,size-pad*2);
+      }
+    }
+  }
+  canvas.fillStyle="white";
+  canvas.font="16px Arial";
+  canvas.fillText(message,CE.width-200,20,200,100);
+}
+
+function draw() {
+  canvas.clearRect(0,0,CE.width,CE.height);
+  // drawWorld();
+  canvas.drawImage(worldImage, 0,0,CE.width,CE.height);
+  entities.forEach(function(e){ e.draw(); }) 
+  // hitboxes.forEach(function(e){ e.draw(); });
+
+}
+
+function drawHealth(player) {
+  canvas.fillStyle='black';
+  canvas.fillRect(0,0,240,20);
+  canvas.fillStyle='red';
+  canvas.fillRect(5,5,230*player.health/player.maxHealth,10);
+}
+
+var stop = false;
+function win() {
+  entities = [];
+  stop=true;
+  setTimeout(function() {
+    canvas.clearRect(0,0,CE.width,CE.height);
+    canvas.textAlign="center";
+    canvas.font='32px Arial';
+    canvas.fillStyle="white";
+    canvas.fillText("YOU WIN", CE.width/2, CE.height/2, 400, 400);    
+  }, 1000);
+}
+
+
+function start() {
+  var player = Fighter();
+  stop=false;
+  player.player = true;
+  entities = [player];
+  worldMap = copyMap(WorldMap);
+  
+  // for(var i=0;i<4;i++){
+  //   entities.push(Enemy(player));
+  // }
+  // player.maxAirJumps=1;
+  // player.hasSword=true;
+  // player.canWallJump=true;
+  loadWorld(world1, player);
+
+  player.x=(1.5)*CE.width/world.length;
+  player.y=CE.height*.8;
+
+  function keyup(e) {
+    var key = e.keyCode;
+    keys[key] = false;
+  };
+  function keydown(e) {
+    var key = e.keyCode;
+    keys[key] = true;
+    if(keyMap[key]&&keyMap[key].start) {
+      keyMap[key].start(player);
+    }
+  }
+
+  window.addEventListener('keydown', keydown);
+  window.addEventListener('keyup', keyup);
+  
+
+
+  function step() {
+    player.mx = 0;
+    player.crouching=false;
+    for(key in keyMap) {
+      if(keys[key] && !keyMap[key].start) {
+        keyMap[key](player);
+      }
+    }
+    update();
+    draw();
+    drawHealth(player);
+    if(player.health<=0) {
+      wi=[0,0];
+      window.removeEventListener('keydown', keydown);
+      window.removeEventListener('keyup', keyup);
+      setTimeout(function() {
+        start();
+      }, 2000)
+    } else if(!stop) {
+    window.requestAnimationFrame(step);
+    }
+  }
+
+  step();
+}
+
+start();
+
+</script>
