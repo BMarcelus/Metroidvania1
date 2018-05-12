@@ -5,6 +5,7 @@ function start() {
   Input.addButton('jump', [87, 38, 32]);
   Input.addButton('crouch', [83, 40]);
   Input.addButton('a', [74, 90]); // J and Z
+  Input.addButton('s', [75])
   Input.addButton('dash', [16]); // Left Shift, or both shifts actualy
   function boundToScreen() {
     const w = CE.width - this.w;
@@ -93,6 +94,10 @@ function start() {
       } else if (Input.getButtonUp('a')) {
         this.x -= this.direction * 20;
       }
+      if(Input.getButtonDown('s'))
+      {
+        this.shoot();
+      }
       if (Input.getButtonDown('dash')) {
         this.dash(hi, Input.getAxisVertical());
       }
@@ -123,6 +128,17 @@ function start() {
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
       this.driver.addEntity(new HitBox(this, x, y, s, s));
+    }
+    shoot()
+    {
+      const s = 3;
+      const d = ((this.w + s) / 2) * (1 - (2 * this.flipped));
+      let x = this.x + (this.w / 2) + d + this.vx;
+      x -= s / 2;
+      const y = (this.y + (this.h / 2)) - (s / 2);
+      //constructor(world, vx, vy, speed, damage, ...args)
+      const projectile = new Projectile(world, 1 - 2 * this.flipped, 0, 20, 3, x, y, s*3, s);
+      main.addEntity(projectile);
     }
     jump() {
       if (!this.grounded) return;
@@ -158,6 +174,34 @@ function start() {
       }
     }
   }
+  class Projectile extends Entity
+  {
+    constructor(world, vx, vy, speed, damage, ...args)
+    {
+      super(...args);
+      this.world = world;
+      this.vx = vx * speed;
+      this.vy = vy * speed;
+      this.speed = speed;
+      this.damage = damage;
+      this.tag = 1;
+      this.direction = vx;
+    }
+    update()
+    {
+      applyVelocity.call(this);
+    }
+
+    onCollision(col)
+    {
+        if(col.team == 2)
+        {
+          this.shouldDelete = true;
+        }
+    }
+
+  }
+
   class Enemy extends Entity {
     constructor(world, ...args) {
       super(...args);
@@ -245,9 +289,11 @@ function start() {
   const main = new Driver(canvas);
   const world = new World();
   const player = new Player(world, 100, 100, 50, 100);
+  
   setInterval(() => {
-    main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
-  }, 5000);
+    if(Input.getButton('e'))
+      main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
+  }, 20);
   main.addEntity(player);
   main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
   main.start();
