@@ -245,9 +245,9 @@ function start() {
   const main = new Driver(canvas);
   const world = new World();
   const player = new Player(world, 100, 100, 50, 100);
-  setInterval(() => {
+  Time.setFramedInterval(() => {
     main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
-  }, 5000);
+  }, 50);
   main.addEntity(player);
   main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
   main.start();

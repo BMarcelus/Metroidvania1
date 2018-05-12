@@ -1,4 +1,26 @@
 function BDOTJS() {
+  function LoopAndRemove(list, callback) {
+    for (let i = 0; i < list.length; i += 1) {
+      const e = list[i];
+      if (e.shouldDelete) {
+        list.splice(i, 1);
+        i -= 1;
+      } else {
+        callback(e);
+      }
+    }
+  }
+  // function LoopAndRemove2(list, callback) {
+  //   for (let i = 0; i < list.length; i += 1) {
+  //     const e = list[i];
+  //     const shouldDelete = callback(e);
+  //     if (shouldDelete) {
+  //       list.splice(i, 1);
+  //       i -= 1;
+  //     }
+  //   }
+  // }
+
   const Time = {
     time: 0,
     deltaTime: 0,
@@ -8,6 +30,9 @@ function BDOTJS() {
     intervalStart: 0,
     intervalLength: 1000,
     fps: 0,
+    timeruuid: 0,
+    timeouts: new Map(),
+    intervals: new Map(),
     process: () => {
       Time.time = Date.now();
       const framesPerMilisecond = 60 / 1000;
@@ -22,7 +47,52 @@ function BDOTJS() {
         Time.framesPerInterval = 0;
         Time.intervalStart = Time.time;
       }
+      const toDelete = [];
+      Time.timeouts.forEach((timeout, key) => {
+        if (timeout.frames <= 0) {
+          timeout.callback();
+          toDelete.push(key);
+        }
+        timeout.frames -= 1;
+      });
+      toDelete.forEach(key => Time.timeouts.delete(key));
+      Time.intervals.forEach((interval) => {
+        if (interval.frames <= 0) {
+          interval.callback();
+          interval.frames = interval.time;
+        }
+        interval.frames -= 1;
+      });
+      // LoopAndRemove2(Time.timeouts, (e) => {
+      //   if (e.frames <= 0) {
+      //     e.callback();
+      //     return true;
+      //   }
+      //   e.frames -= 1;
+      //   return false;
+      // });
+      // Time.intervals.forEach((e) => {
+      //   e.timer += 1;
+      //   if (e.timer > e.frames) {
+      //     e.timer = 0;
+      //     e.callback();
+      //   }
+      // });
     },
+    setFramedTimeout: (callback, frames) => {
+      const id = Time.timeruuid;
+      Time.timeruuid += 1;
+      Time.timeouts.set(id, { callback, frames });
+      return id;
+    },
+    setFramedInterval: (callback, frames) => {
+      const id = Time.timeruuid;
+      Time.timeruuid += 1;
+      Time.intervals.set(id, { callback, frames, time: frames });
+      return id;
+    },
+    clearFramedTimeout: id => Time.timeouts.delete(id),
+    clearFramedInterval: id => Time.intervals.delete(id),
   };
   const Input = {
     keys: [],
@@ -59,18 +129,6 @@ function BDOTJS() {
     const k = e.keyCode;
     Input.keys[k] = -(Time.frame + 1);
   });
-
-  function LoopAndRemove(list, callback) {
-    for (let i = 0; i < list.length; i += 1) {
-      const e = list[i];
-      if (e.shouldDelete) {
-        list.splice(i, 1);
-        i -= 1;
-      } else {
-        callback(e);
-      }
-    }
-  }
 
   function collides(a, b) {
     return a.x + a.w >= b.x &&
