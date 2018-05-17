@@ -1,4 +1,5 @@
-function BDOTJS() {
+let BDOTJS = {};
+BDOTJS.init = function init() {
   function LoopAndRemove(list, callback) {
     for (let i = 0; i < list.length; i += 1) {
       const e = list[i];
@@ -212,6 +213,17 @@ function BDOTJS() {
     onCollision() {
       this.colliding = true;
     }
+    applyVelocity() {
+      let { vy } = this;
+      if (this.gravity) {
+        vy -= this.gravity * (Time.deltaTime / 2);
+      }
+      this.x += this.vx * Time.deltaTime;
+      this.y += vy * Time.deltaTime;
+    }
+    applyGravity() {
+      this.vy += this.gravity * Time.deltaTime;
+    }
   }
 
   function sizeCanvasToWindow(CE) {
@@ -237,5 +249,6 @@ function BDOTJS() {
     SetupCanvas,
   };
   return BJSExports;
-}
+};
+BDOTJS = BDOTJS.init();
 BDOTJS.noError = true;

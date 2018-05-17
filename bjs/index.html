@@ -5,5 +5,41 @@
   }
 </style>
 <canvas id="gc"></canvas>
-<script src="./b.js"></script>
-<script src="./game2.js"></script>
+<script>
+  function loadScript (dir, file) {
+   var scr = document.createElement("script");
+   scr.src = dir + file + '?32';
+   document.body.appendChild(scr);
+   return scr;
+  }
+  function loadFolder (dir, preNum, num, postNum) {
+    var file = preNum + num + postNum;
+    var scr = document.createElement("script");
+    scr.src = dir + file;
+    document.body.appendChild(scr);
+    scr.onload = function() {
+      loadFolder(dir, preNum, num+1, postNum);
+    }
+  }
+  function loadSequentially (dir, list) {
+      var file = list.shift();
+      loadScript(dir, file).onload = function() {
+        if(list.length!=0)
+        loadSequentially(dir, list);
+      };
+  }
+  // loadSequentially("./",[
+  //   "Entities/index.js",
+  //   "Blocks/index.js",
+  //   "Worlds/index.js",
+  //   "Scenes/index.js",
+  // ]);
+  loadSequentially("./",[
+    "b.js",
+    "Hitbox.js",
+    "Player.js",
+    "game2.js",
+  ]);
+  </script>
+<!-- <script src="./b.js"></script> -->
+<!-- <script src="./game2.js"></script> -->
