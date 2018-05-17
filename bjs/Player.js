@@ -78,7 +78,15 @@
       let x = this.x + (this.w / 2) + d + this.vx;
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
-      this.driver.addEntity(new HitBox(this, x, y, s, s));
+      const hitbox = new HitBox(this, x, y, s, s);
+			hitbox.collisionBehaviour = function(col) {
+				if(col.team === 2)
+      	{
+        	//col.takeDamage(3);
+        	col.doKnockback(this.direction, -10, 30);
+				}
+			}
+      this.driver.addEntity(hitbox);
     }
     shoot() {
       const w = 9;
@@ -87,8 +95,15 @@
       let x = this.x + (this.w / 2) + d + this.vx;
       x -= w / 2;
       const y = (this.y + (this.h / 2)) - (h / 2);
-      // constructor(vx, vy, speed, damage, ...args)
-      const projectile = new this.Projectile(1 - (2 * this.flipped), 0, 20, 3, x, y, w, h);
+      //constructor(vx, vy, speed, damage, ...args) {
+      const projectile = new this.Projectile( (1 - (2 * this.flipped)), 0, 20, 1, this.world, x, y, w, h);
+      projectile.collisionBehaviour = function(col) {
+        if(col.team === 2)
+      	{
+        	col.takeDamage(1);
+        	col.doKnockback(this.direction, 10, 10);
+				}
+      }
       this.driver.addEntity(projectile);
     }
     jump() {
@@ -100,29 +115,26 @@
       this.grounded = true;
       this.vy = 0;
     }
-
+    takeDamage(dmg){
+			if (this.invul) return;
+      this.invul = true;
+      this.color = '#f00';
+      this.canMove = false;
+      this.sustainVelocity = true;
+      setTimeout(() => { this.color = '#faa'; }, 50);
+      this.life -= dmg;
+			setTimeout(() => {
+        this.color = '#000';
+        this.invul = false;
+        this.canMove = true;
+        this.sustainVelocity = false;
+      }, 200);
+		}
+		doKnockback(dir, xForce, yForce) {
+			this.vx = xForce * dir;
+			this.vy = -1 * yForce;
+		}
     onCollision(col) {
-      if (col.tag === 2) {
-        if (this.invul) return;
-        this.invul = true;
-        this.color = '#f00';
-        this.canMove = false;
-        this.sustainVelocity = true;
-        setTimeout(() => { this.color = '#faa'; }, 50);
-        this.vx = 10 * col.direction;
-        this.vy = -10;
-        // this.life -= 1;
-        // if (this.life <= 0) {
-        //   setTimeout(() => { this.shouldDelete = true; }, 200);
-        // } else {
-        setTimeout(() => {
-          this.color = '#000';
-          this.invul = false;
-          this.canMove = true;
-          this.sustainVelocity = false;
-        }, 200);
-        // }
-      }
     }
   }
 
