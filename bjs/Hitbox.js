@@ -1,5 +1,5 @@
 (function LoadHitBox() {
-  const { Entity } = BDOTJS;
+  const { Entity, Enemy } = BDOTJS;
 
   class HitBox extends Entity {
     constructor(parent, ...args) {
@@ -15,6 +15,12 @@
         this.shouldDelete = true;
       }
       this.life -= 1;
+    }
+    onCollision(col) {
+      this.collisionBehaviour(col);
+    }
+    collisionBehaviour(col) {
+      console.log("default");
     }
   }
 
