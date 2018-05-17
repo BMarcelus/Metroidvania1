@@ -1,5 +1,5 @@
 function start() {
-  const { Driver, Entity, Input, Time, SetupCanvas, Player, Enemy, HitBox, Projectile } = BDOTJS;
+  const { Driver, Input, Time, SetupCanvas, Player, Enemy, Projectile } = BDOTJS;
   const { CE, canvas } = SetupCanvas();
   Input.addButton('jump', [87, 38, 32]);
   Input.addButton('crouch', [83, 40]);
@@ -28,7 +28,7 @@ function start() {
       return false;
     }
     boundToFloor(entity, callback) {
-      boundToScreen.call(this);
+      boundToScreen.call(entity);
       const col = this.groundCollides(entity);
       if (col) {
         entity.y = col.y - entity.h;

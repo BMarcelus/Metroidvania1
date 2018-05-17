@@ -81,13 +81,12 @@
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
       const hitbox = new HitBox(this, x, y, s, s);
-			hitbox.collisionBehaviour = function(col) {
-				if(col.team === 2)
-      	{
-        	//col.takeDamage(3);
-        	col.doKnockback(this.direction, -10, 30);
-				}
-			}
+      hitbox.collisionBehaviour = function playerAttackHit(col) {
+        if (col.team === 2) {
+          // col.takeDamage(3);
+          col.doKnockback(this.direction, -10, 30);
+        }
+      };
       this.driver.addEntity(hitbox);
     }
     shoot() {
@@ -97,15 +96,17 @@
       let x = this.x + (this.w / 2) + d + this.vx;
       x -= w / 2;
       const y = (this.y + (this.h / 2)) - (h / 2);
-      //constructor(vx, vy, speed, damage, ...args) {
-      const projectile = new this.Projectile( (1 - (2 * this.flipped)), 0, 20, 1, this.world, x, y, w, h);
-      projectile.collisionBehaviour = function(col) {
-        if(col.team === 2)
-      	{
-        	col.takeDamage(1);
-        	col.doKnockback(this.direction, 10, 10);
-				}
-      }
+      const vx = (1 - (2 * this.flipped));
+      const vy = 0;
+      const speed = 20;
+      const damage = 1;
+      const projectile = new this.Projectile(vx, vy, speed, damage, this.world, x, y, w, h);
+      projectile.collisionBehaviour = function playerProjectileHit(col) {
+        if (col.team === 2) {
+          col.takeDamage(1);
+          col.doKnockback(this.direction, 10, 10);
+        }
+      };
       this.driver.addEntity(projectile);
     }
     jump() {
@@ -124,26 +125,24 @@
       this.vy = 0;
       this.doubleJumps = this.maxDoubleJumps;
     }
-    takeDamage(dmg){
-			if (this.invul) return;
+    takeDamage(dmg) {
+      if (this.invul) return;
       this.invul = true;
       this.color = '#f00';
       this.canMove = false;
       this.sustainVelocity = true;
-      setTimeout(() => { this.color = '#faa'; }, 50);
+      Time.setFramedTimeout(() => { this.color = '#faa'; }, 10);
       this.life -= dmg;
-			setTimeout(() => {
+      Time.setFramedTimeout(() => {
         this.color = '#000';
         this.invul = false;
         this.canMove = true;
         this.sustainVelocity = false;
-      }, 200);
-		}
-		doKnockback(dir, xForce, yForce) {
-			this.vx = xForce * dir;
-			this.vy = -1 * yForce;
-		}
-    onCollision(col) {
+      }, 50);
+    }
+    doKnockback(dir, xForce, yForce) {
+      this.vx = xForce * dir;
+      this.vy = -1 * yForce;
     }
   }
 
