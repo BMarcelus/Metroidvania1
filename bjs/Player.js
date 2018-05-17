@@ -18,6 +18,8 @@
       this.hasGravity = true;
       this.canMove = true;
       this.Projectile = Projectile;
+      this.doubleJumps = 3;
+      this.maxDoubleJumps = 3;
     }
     update() {
       const hi = Input.getAxisHorizontal();
@@ -107,13 +109,20 @@
       this.driver.addEntity(projectile);
     }
     jump() {
-      if (!this.grounded) return;
-      this.vy = -20;
-      this.grounded = false;
+      if (!this.grounded) {
+        if(this.doubleJumps > 0) {
+          this.doubleJumps--;
+          this.vy = -20;
+        }
+      } else {
+        this.vy = -20;
+        this.grounded = false;
+      }
     }
     onGrounded() {
       this.grounded = true;
       this.vy = 0;
+      this.doubleJumps = this.maxDoubleJumps;
     }
     takeDamage(dmg){
 			if (this.invul) return;
