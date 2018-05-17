@@ -16,24 +16,24 @@ function start() {
     if (this.x > w) this.x = w;
     if (this.y > h) this.y = h;
   }
-  // function applyGravity() {
-  //   this.vy += this.gravity * Time.deltaTime;
-  // }
-  // function applyVelocity() {
-  //   let { vy } = this;
-  //   if (this.gravity) {
-  //     vy += this.gravity * (Time.deltaTime / 2);
-  //   }
-  //   this.x += this.vx * Time.deltaTime;
-  //   this.y += vy * Time.deltaTime;
-  // }
   function applyGravity() {
-    this.vy += this.gravity;
+    this.vy += this.gravity * Time.deltaTime;
   }
   function applyVelocity() {
-    this.x += this.vx;
-    this.y += this.vy;
+    let { vy } = this;
+    if (this.gravity) {
+      vy -= this.gravity * (Time.deltaTime / 2);
+    }
+    this.x += this.vx * Time.deltaTime;
+    this.y += vy * Time.deltaTime;
   }
+  // function applyGravity() {
+  //   this.vy += this.gravity;
+  // }
+  // function applyVelocity() {
+  //   this.x += this.vx;
+  //   this.y += this.vy;
+  // }
   class HitBox extends Entity {
     constructor(parent, ...args) {
       super(...args);
@@ -288,6 +288,9 @@ function start() {
     if (Input.getButtonDown('e')) {
       main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
     }
+    // for (let i = 0; i < 10; i += 1) {
+    //   main.addEntity(new Entity(Math.random() * CE.width, Math.random() * CE.height, 10, 10));
+    // }
   }, 1);
   main.addEntity(player);
   main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
