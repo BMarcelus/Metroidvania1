@@ -14,20 +14,22 @@
       this.team = 2;
       this.flipped = false;
       this.direction = 1;
+      this.canMove = true;
       this.onGrounded = this.onGrounded.bind(this);
+     
     }
     update() {
-      if (Math.random() > 0.95) {
-        if (Math.random() > 0.5) {
-          this.mx = 1;
-        } else {
-          this.mx = -1;
+      if(this.canMove) {
+        if (Math.random() > 0.95) {
+          if (Math.random() > 0.5) {
+            this.mx = 1;
+          } else {
+            this.mx = -1;
+          }
         }
+        this.x += this.mx * 3;
       }
-      if (Math.random() > 0.95) {
-        this.mx = 0;
-      }
-      this.x += this.mx * 3;
+      
       if (Time.frame % 60 === 0) this.attack();
       if (this.mx) {
         this.flipped = this.mx < 0;
@@ -35,7 +37,6 @@
       }
       this.applyGravity();
       this.applyVelocity();
-      //this.world.boundToScreen.call(this);
       this.world.boundToFloor(this, this.onGrounded);
 		}
 		takeDamage(dmg){
@@ -52,7 +53,11 @@
 		}
 		doKnockback(dir, xForce, yForce) {
 			this.vx = xForce * dir;
-			this.vy = -1 * yForce;
+      this.vy = -1 * yForce;
+      this.canMove = false;
+      Time.setFramedTimeout(() => {
+        this.canMove = true;
+      }, 30);
 		}
     onCollision(col) {
     }
