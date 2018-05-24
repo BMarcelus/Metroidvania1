@@ -22,6 +22,8 @@
         damage: 0,
         knockback: { vx: -10, vy: 30 },
       };
+      this.doubleJumps = 3;
+      this.maxDoubleJumps = 3;
     }
     update() {
       const hi = Input.getAxisHorizontal();
@@ -51,6 +53,12 @@
       } else if (Input.getButtonUp('attack')) {
         this.x -= this.direction * 20;
       }
+      if (Input.getButtonDown('attack2')) {
+        this.x -= this.direction * 20;
+        this.spearattack();
+      } else if (Input.getButtonUp('attack2')) {
+        this.x += this.direction * 20;
+      }
       if (Input.getButtonDown('shoot')) {
         this.shoot();
       }
@@ -64,6 +72,7 @@
       this.world.boundToFloor(this, this.onGrounded);
     }
     dash(hi, vi) {
+      if (!this.canMove) return;
       this.sustainVelocity = true;
       this.hasGravity = false;
       // this.canMove = false;
@@ -75,6 +84,21 @@
         this.hasGravity = true;
         this.vy = 0;
       }, 100);
+    }
+    spearattack() {
+      const w = 200;
+      const h = 10;
+      let x = this.x + (this.w / 2);
+      x -= this.flipped ? w : 0;
+      const y = this.y + ((this.h / 2) - (h / 2));
+      const hitbox = new HitBox(this, x, y, w, h);
+      hitbox.collisionBehaviour = function playerAttackHit(col) {
+        if (col.team === 2) {
+          col.takeDamage(1);
+          col.doKnockback(this.direction, 200, 100);
+        }
+      };
+      this.driver.addEntity(hitbox);
     }
     attack() {
       const s = 74;
@@ -115,32 +139,41 @@
       this.driver.addEntity(projectile);
     }
     jump() {
-      if (!this.grounded) return;
-      this.vy = -20;
-      this.grounded = false;
+      if (!this.grounded) {
+        if (this.doubleJumps > 0) {
+          this.doubleJumps -= 1;
+          this.vy = -20;
+        }
+      } else {
+        this.vy = -20;
+        this.grounded = false;
+      }
     }
     onGrounded() {
       this.grounded = true;
       this.vy = 0;
+      this.doubleJumps = this.maxDoubleJumps;
     }
     takeDamage(dmg) {
       if (this.invul) return;
       this.invul = true;
       this.color = '#f00';
-      this.canMove = false;
-      this.sustainVelocity = true;
-      Time.setFramedTimeout(() => { this.color = '#faa'; }, 4);
+      Time.setFramedTimeout(() => { this.color = '#faa'; }, 10);
       this.life -= dmg;
       Time.setFramedTimeout(() => {
         this.color = '#000';
         this.invul = false;
-        this.canMove = true;
-        this.sustainVelocity = false;
-      }, 12);
+      }, 30);
     }
     doKnockback(dir, xForce, yForce) {
       this.vx = xForce * dir;
       this.vy = -1 * yForce;
+      this.sustainVelocity = true;
+      this.canMove = false;
+      Time.setFramedTimeout(() => {
+        this.canMove = true;
+        this.sustainVelocity = false;
+      }, 30);
     }
   }
 

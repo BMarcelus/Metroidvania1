@@ -114,10 +114,57 @@ BDOTJS.init = function init() {
   }
 
   class Driver {
-    constructor(canvas) {
+    setCanvas(canvas) {
       this.canvas = canvas;
+    }
+    setScene(scene) {
+      this.scene = scene;
+    }
+    start(scene) {
+      if (scene) this.setScene(scene);
+      Time.last = Date.now();
+      this.draw = this.draw.bind(this);
+      this.draw();
+      setInterval(this.update.bind(this), 1000 / 60);
+    }
+    clearScreen() {
+      const { canvas } = this;
+      canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
+    }
+    update() {
+      Time.process();
+      this.scene.update();
+    }
+    draw() {
+      const { canvas } = this;
+      this.clearScreen();
+      this.scene.draw(canvas);
+      canvas.fillText(Time.fps, 10, 10);
+      window.requestAnimationFrame(this.draw);
+    }
+  }
+
+  class EntityContainer {
+    constructor() {
       this.entities = [];
-      this.step = this.step.bind(this);
+    }
+    addEntity(entity) {
+      entity.setDriver(this);
+      this.entities.push(entity);
+    }
+    draw(canvas) {
+      this.entities.forEach(e => e.draw(canvas));
+    }
+    update() {
+      LoopAndRemove(this.entities, (e) => {
+        if (e.update) e.update();
+      });
+    }
+  }
+
+  class PhysicsContainer extends EntityContainer {
+    constructor() {
+      super();
       this.layerNameMap = {};
       this.layers = [];
       this.layerCollisionMap = [];
@@ -134,18 +181,6 @@ BDOTJS.init = function init() {
     addCollisionLayer(name) {
       this.layerNameMap[name] = this.layers.length;
       this.layers.push([]);
-    }
-    start() {
-      // this.step();
-      Time.last = Date.now();
-      this.draw = this.draw.bind(this);
-      this.draw();
-      setInterval(this.update.bind(this), 1000 / 60);
-      // setInterval(this.update.bind(this), 0);
-    }
-    clearScreen() {
-      const { canvas } = this;
-      canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
     }
     // handleLayerCollisions() {
     //   for (let i = 0; i < this.layerCollisionMap.length; i += 1) {
@@ -164,33 +199,9 @@ BDOTJS.init = function init() {
         }
       }
     }
-    draw() {
-      this.clearScreen();
-      this.entities.forEach(e => e.draw(this.canvas));
-      this.canvas.fillText(Time.fps, 10, 10);
-      window.requestAnimationFrame(this.draw);
-    }
     update() {
-      Time.process();
-      LoopAndRemove(this.entities, (e) => {
-        if (e.update) e.update();
-      });
+      super.update();
       this.handleCollisions();
-    }
-    step() {
-      this.clearScreen();
-      Time.process();
-      LoopAndRemove(this.entities, (e) => {
-        if (e.draw) e.draw(this.canvas);
-        if (e.update) e.update();
-      });
-      this.handleCollisions();
-      this.canvas.fillText(Time.fps, 10, 10);
-      window.requestAnimationFrame(this.step);
-    }
-    addEntity(entity) {
-      entity.setDriver(this);
-      this.entities.push(entity);
     }
   }
 
@@ -242,11 +253,12 @@ BDOTJS.init = function init() {
   }
 
   const BJSExports = {
-    Driver,
     Entity,
     Time,
     Input,
     SetupCanvas,
+    Driver: new Driver(),
+    GameContainer: PhysicsContainer,
   };
   return BJSExports;
 };
