@@ -1,5 +1,5 @@
 function start() {
-  const { Driver, Entity, Input, Time, SetupCanvas } = BDOTJS();
+  const { Driver, GameContainer, Entity, Input, Time, SetupCanvas } = BDOTJS;
   const { CE, canvas } = SetupCanvas();
   function boundToScreen() {
     const w = CE.width - this.w;
@@ -132,7 +132,7 @@ function start() {
     }
   }
 
-  const main = new Driver(canvas);
+  const main = new GameContainer(canvas);
   const player = new Player(100, 100, 10, 10);
   let target = player;
   for (let i = 0; i < 1000; i += 1) {
@@ -145,6 +145,9 @@ function start() {
   }
   // main.entities[0].target = main.entities[10];
   main.addEntity(player);
-  main.start();
+
+  Driver.setCanvas(canvas);
+  Driver.setScene(main);
+  Driver.start();
 }
 window.onload = start;

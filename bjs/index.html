@@ -10,6 +10,9 @@ function pointInRect(point, rect) {
   return point.x >= rect.x && point.x <= rect.x + rect.w &&
     point.y >= rect.y && point.y <= rect.y + rect.h;
 }
+const B = {
+  pointInRect,
+}
 </script>
 <script>
   function loadScript (dir, file) {

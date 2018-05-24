@@ -18,9 +18,11 @@ BDOTJS.init = function init() {
     last: Date.now(),
     frame: 0,
     framesPerInterval: 0,
+    drawsPerInterval: 0,
     intervalStart: 0,
     intervalLength: 1000,
     fps: 0,
+    dps: 0,
     timeruuid: 0,
     timeouts: new Map(),
     intervals: new Map(),
@@ -35,10 +37,12 @@ BDOTJS.init = function init() {
       Time.framesPerInterval += 1;
       if (Time.time >= Time.intervalStart + Time.intervalLength) {
         Time.fps = Time.framesPerInterval;
+        Time.dps = Time.drawsPerInterval;
         Time.framesPerInterval = 0;
+        Time.drawsPerInterval = 0;
         Time.intervalStart = Time.time;
       }
-      const toDelete = [];
+      let toDelete = [];
       Time.timeouts.forEach((timeout, key) => {
         if (timeout.frames <= 0) {
           timeout.callback();
@@ -47,13 +51,21 @@ BDOTJS.init = function init() {
         timeout.frames -= 1;
       });
       toDelete.forEach(key => Time.timeouts.delete(key));
-      Time.intervals.forEach((interval) => {
+      toDelete = [];
+      Time.intervals.forEach((interval, key) => {
         if (interval.frames <= 0) {
           interval.callback();
           interval.frames = interval.time;
+          if (interval.length) {
+            interval.length -= 1;
+            if (interval.length === 0) {
+              toDelete.push(key);
+            }
+          }
         }
         interval.frames -= 1;
       });
+      toDelete.forEach(key => Time.intervals.delete(key));
     },
     setFramedTimeout: (callback, frames) => {
       const id = Time.timeruuid;
@@ -61,10 +73,10 @@ BDOTJS.init = function init() {
       Time.timeouts.set(id, { callback, frames });
       return id;
     },
-    setFramedInterval: (callback, frames) => {
+    setFramedInterval: (callback, frames, length) => {
       const id = Time.timeruuid;
       Time.timeruuid += 1;
-      Time.intervals.set(id, { callback, frames, time: frames });
+      Time.intervals.set(id, { callback, frames, time: frames, length });
       return id;
     },
     clearFramedTimeout: id => Time.timeouts.delete(id),
@@ -161,10 +173,12 @@ BDOTJS.init = function init() {
       Input.reset();
     }
     draw() {
+      Time.drawsPerInterval += 1;
       const { canvas } = this;
       this.clearScreen();
       this.scene.draw(canvas);
-      canvas.fillText(Time.fps, 10, 10);
+      canvas.font = '40px Impact';
+      canvas.fillText(Time.dps, 20, 40);
       window.requestAnimationFrame(this.draw);
     }
   }
@@ -259,6 +273,11 @@ BDOTJS.init = function init() {
     }
     applyGravity() {
       this.vy += this.gravity * Time.deltaTime;
+    }
+    containsPoint(point) {
+      const rect = this;
+      return point.x >= rect.x && point.x <= rect.x + rect.w &&
+      point.y >= rect.y && point.y <= rect.y + rect.h;
     }
   }
 
