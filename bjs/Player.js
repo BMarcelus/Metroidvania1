@@ -79,12 +79,12 @@
       // this.canMove = false;
       this.vx = hi * 20;
       this.vy = vi * 20;
-      setTimeout(() => {
+      Time.setFramedTimeout(() => {
         this.sustainVelocity = false;
         this.canMove = true;
         this.hasGravity = true;
         this.vy = 0;
-      }, 100);
+      }, 6);
     }
     spearattack() {
       const w = 200;

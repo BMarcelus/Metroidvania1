@@ -73,6 +73,11 @@ BDOTJS.init = function init() {
   const Input = {
     keys: [],
     buttons: {},
+    mouse: { x: 0, y: 0, held: false, down: false, up: false },
+    reset: () => {
+      Input.mouse.down = false;
+      Input.mouse.up = false;
+    },
     addButton: (name, keys) => {
       Input.buttons[name] = { keys };
     },
@@ -105,6 +110,25 @@ BDOTJS.init = function init() {
     const k = e.keyCode;
     Input.keys[k] = -(Time.frame + 1);
   });
+  function mouseMoveEvent(e) {
+    const x = e.clientX;
+    const y = e.clientY;
+    Input.mouse.x = x;
+    Input.mouse.y = y;
+  }
+  window.addEventListener('mousemove', mouseMoveEvent);
+  window.addEventListener('mousedown', (e) => {
+    mouseMoveEvent(e);
+    Input.mouse.held = true;
+    Input.mouse.down = true;
+    Input.mouse.lastDown = Time.frame;
+  });
+  window.addEventListener('mouseup', (e) => {
+    mouseMoveEvent(e);
+    Input.mouse.held = false;
+    Input.mouse.up = true;
+    Input.mouse.lastUp = Time.frame;
+  });
 
   function collides(a, b) {
     return a.x + a.w >= b.x &&
@@ -134,6 +158,7 @@ BDOTJS.init = function init() {
     update() {
       Time.process();
       this.scene.update();
+      Input.reset();
     }
     draw() {
       const { canvas } = this;
@@ -263,4 +288,3 @@ BDOTJS.init = function init() {
   return BJSExports;
 };
 BDOTJS = BDOTJS.init();
-BDOTJS.noError = true;
