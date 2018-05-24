@@ -20,7 +20,7 @@
       this.world.boundToFloor(this, this.onGrounded);
     }
     onCollision(col) {
-			if (Math.abs(this.vy) >= 5 && col.team === 2) {
+			if (Math.abs(this.vy) >= 25 && col.team === 2) {
 				col.takeDamage(3);
 			}
       if (col.inventory && !this.pickedup && col.inventory.addItem(this.data)) {
