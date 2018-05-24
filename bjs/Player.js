@@ -18,6 +18,10 @@
       this.hasGravity = true;
       this.canMove = true;
       this.Projectile = Projectile;
+      this.attackData = {
+        damage: 0,
+        knockback: { vx: -10, vy: 30 },
+      };
     }
     update() {
       const hi = Input.getAxisHorizontal();
@@ -78,11 +82,14 @@
       let x = this.x + (this.w / 2) + d + this.vx;
       x -= s / 2;
       const y = (this.y + (this.h / 2)) - (s / 2);
+      this.createHitBox(this.attackData, x, y, s);
+    }
+    createHitBox(attackData, x, y, s) {
       const hitbox = new HitBox(this, x, y, s, s);
       hitbox.collisionBehaviour = function playerAttackHit(col) {
         if (col.team === 2) {
-          // col.takeDamage(3);
-          col.doKnockback(this.direction, -10, 30);
+          col.takeDamage(attackData.damage);
+          col.doKnockback(this.direction, attackData.knockback.vx, attackData.knockback.vy);
         }
       };
       this.driver.addEntity(hitbox);
@@ -122,14 +129,14 @@
       this.color = '#f00';
       this.canMove = false;
       this.sustainVelocity = true;
-      Time.setFramedTimeout(() => { this.color = '#faa'; }, 10);
+      Time.setFramedTimeout(() => { this.color = '#faa'; }, 4);
       this.life -= dmg;
       Time.setFramedTimeout(() => {
         this.color = '#000';
         this.invul = false;
         this.canMove = true;
         this.sustainVelocity = false;
-      }, 50);
+      }, 12);
     }
     doKnockback(dir, xForce, yForce) {
       this.vx = xForce * dir;
