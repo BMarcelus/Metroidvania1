@@ -20,7 +20,7 @@
       this.collisionBehaviour(col);
     }
     collisionBehaviour(col) {
-      console.log("default");
+      console.log("hitbox default");
     }
   }
 

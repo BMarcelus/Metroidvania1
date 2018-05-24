@@ -1,5 +1,5 @@
 function start() {
-  const { Driver, Input, Time, SetupCanvas, Player, Enemy, Projectile } = BDOTJS;
+  const { Driver, Input, Time, SetupCanvas, Player, Enemy, Projectile, ItemObject, ItemData } = BDOTJS;
   const { CE, canvas } = SetupCanvas();
   Input.addButton('jump', [87, 38, 32]); // w, up arrow, space bar
   Input.addButton('crouch', [83, 40]); // s and down arrow
@@ -50,6 +50,8 @@ function start() {
     // }
   }, 1);
   main.addEntity(player);
+  for(var x = 0; x < 4; ++x)
+    main.addEntity(new ItemObject(world, new ItemData(), (x * 200) + 100, 0, 30, 30));
   main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
   main.start();
 }

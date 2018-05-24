@@ -11,6 +11,7 @@
       this.tag = 1;
       this.direction = vx;
       this.life = 100;
+      this.color = 'black';
     }
     update() {
       super.update();

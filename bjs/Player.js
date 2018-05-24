@@ -1,5 +1,5 @@
 (function LoadPlayer() {
-  const { Entity, Input, Time, HitBox } = BDOTJS;
+  const { Entity, Input, Time, HitBox, Inventory } = BDOTJS;
 
   class Player extends Entity {
     constructor(world, Projectile, ...args) {
@@ -20,6 +20,7 @@
       this.Projectile = Projectile;
       this.doubleJumps = 3;
       this.maxDoubleJumps = 3;
+      this.inventory = new Inventory(3);
     }
     update() {
       const hi = Input.getAxisHorizontal();
