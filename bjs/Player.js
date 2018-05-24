@@ -66,6 +66,9 @@
       if (Input.getButtonDown('dash')) {
         this.dash(hi, Input.getAxisVertical());
       }
+      if (Input.getButtonDown('q')) {
+        this.inventory.dropItem(this);
+      }
       if (this.hasGravity) {
         this.applyGravity();
       }

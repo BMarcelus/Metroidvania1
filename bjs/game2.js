@@ -18,6 +18,7 @@ function start() {
   Input.addButton('attack2', [75, 88]); // K and X
   Input.addButton('shoot', [76, 67]); // L and C
   Input.addButton('e', [69]);
+  Input.addButton('q', [81]); // drop
   Input.addButton('dash', [16]); // Left Shift, or both shifts actualy
 
   function boundToScreen() {
@@ -44,6 +45,7 @@ function start() {
       const col = this.groundCollides(entity);
       if (col) {
         entity.y = col.y - entity.h;
+        entity.vy = 0;
         if (callback) callback();
       }
     }
@@ -61,7 +63,7 @@ function start() {
   }, 1);
   main.addEntity(player);
   for (let x = 0; x < 4; x += 1) {
-    main.addEntity(new ItemObject(world, new ItemData(), (x * 200) + 100, 0, 30, 30));
+    main.addEntity(new ItemObject(world, new ItemData(), (x * 200) + 100, CE.height, 30, 30));
   }
   main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
 
