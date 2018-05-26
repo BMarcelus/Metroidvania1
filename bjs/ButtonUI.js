@@ -84,6 +84,10 @@
         this.y -= this.h / 2;
       }
     }
+    containsPoint(point) {
+      if (this.on && point.mouse) return true;
+      return super.containsPoint(point);
+    }
   }
 
   BDOTJS.ButtonUI = ButtonUI;

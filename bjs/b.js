@@ -85,7 +85,7 @@ BDOTJS.init = function init() {
   const Input = {
     keys: [],
     buttons: {},
-    mouse: { x: 0, y: 0, held: false, down: false, up: false },
+    mouse: { x: 0, y: 0, held: false, down: false, up: false, mouse: true },
     reset: () => {
       Input.mouse.down = false;
       Input.mouse.up = false;
