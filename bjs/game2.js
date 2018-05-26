@@ -10,6 +10,7 @@ function start() {
     Projectile,
     ItemObject,
     ItemData,
+    DraggableUI,
   } = BDOTJS;
   const { CE, canvas } = SetupCanvas();
   Input.addButton('jump', [87, 38, 32]); // w, up arrow, space bar
@@ -66,6 +67,8 @@ function start() {
     main.addEntity(new ItemObject(world, new ItemData(), (x * 200) + 100, CE.height, 30, 30));
   }
   main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
+
+  main.addEntity(new DraggableUI(100, 100, 100, 100));
 
   Driver.setCanvas(canvas);
   Driver.setScene(main);
