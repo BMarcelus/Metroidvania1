@@ -90,6 +90,11 @@ BDOTJS.init = function init() {
       Input.mouse.down = false;
       Input.mouse.up = false;
     },
+    clear: () => {
+      for (let i = 0; i < 255; i += 1) {
+        Input.keys[i] = 0;
+      }
+    },
     addButton: (name, keys) => {
       Input.buttons[name] = { keys };
     },
@@ -150,6 +155,13 @@ BDOTJS.init = function init() {
   }
 
   class Driver {
+    constructor() {
+      this.update = this.update.bind(this);
+      this.draw = this.draw.bind(this);
+      this.paused = true;
+      window.addEventListener('blur', this.pause.bind(this));
+      window.addEventListener('focus', this.resume.bind(this));
+    }
     setCanvas(canvas) {
       this.canvas = canvas;
     }
@@ -159,9 +171,9 @@ BDOTJS.init = function init() {
     start(scene) {
       if (scene) this.setScene(scene);
       Time.last = Date.now();
-      this.draw = this.draw.bind(this);
+      this.paused = false;
       this.draw();
-      setInterval(this.update.bind(this), 1000 / 60);
+      this.updateInterval = setInterval(this.update, 1000 / 60);
     }
     clearScreen() {
       const { canvas } = this;
@@ -173,6 +185,7 @@ BDOTJS.init = function init() {
       Input.reset();
     }
     draw() {
+      if (this.paused) return;
       Time.drawsPerInterval += 1;
       const { canvas } = this;
       this.clearScreen();
@@ -180,6 +193,18 @@ BDOTJS.init = function init() {
       canvas.font = '40px Impact';
       canvas.fillText(Time.dps, 20, 40);
       window.requestAnimationFrame(this.draw);
+    }
+    pause() {
+      if (!this.paused) {
+        clearInterval(this.updateInterval);
+        this.paused = true;
+        Input.clear();
+      }
+    }
+    resume() {
+      if (this.paused) {
+        this.start();
+      }
     }
   }
 
@@ -244,21 +269,42 @@ BDOTJS.init = function init() {
     }
   }
 
+  // class GameContainer extends EntityContainer {
+  //   constructor() {
+  //     super();
+  //     this.physicsContainer = new PhysicsContainer();
+  //     this.UIContainers = new EntityContainer();
+  //   }
+  //   addEntity(entity) {
+  //     this.physicsContainer.addEntity(entity);
+  //     entity.setDriver(this);
+  //   }
+  //   addUI(UI) {
+  //     this.UIContainer.addEntity(UI);
+  //     UI.setDriver(this);
+  //   }
+  // }
+
+  function RectRenderer(canvas) {
+    const { x, y, w, h, color } = this;
+    canvas.fillStyle = color;
+    canvas.fillRect(x, y, w, h);
+  }
+
   class Entity {
     constructor(x, y, w, h) {
       this.x = x;
       this.y = y;
       this.w = w;
       this.h = h;
+      this.initRenderer();
+    }
+    initRenderer() {
       this.color = 'black';
+      this.draw = RectRenderer;
     }
     setDriver(driver) {
       this.driver = driver;
-    }
-    draw(canvas) {
-      const { x, y, w, h, color } = this;
-      canvas.fillStyle = color;
-      canvas.fillRect(x, y, w, h);
     }
     onCollision() {
       this.colliding = true;
@@ -303,6 +349,7 @@ BDOTJS.init = function init() {
     SetupCanvas,
     Driver: new Driver(),
     GameContainer: PhysicsContainer,
+    EntityContainer,
   };
   return BJSExports;
 };

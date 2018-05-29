@@ -83,10 +83,14 @@
       this.vx = hi * 20;
       this.vy = vi * 20;
       Time.setFramedTimeout(() => {
-        this.sustainVelocity = false;
-        this.canMove = true;
-        this.hasGravity = true;
+        this.vx = 0;
         this.vy = 0;
+        Time.setFramedTimeout(() => {
+          this.sustainVelocity = false;
+          this.canMove = true;
+          this.hasGravity = true;
+          this.vy = -this.gravity;
+        }, 2);
       }, 6);
     }
     spearattack() {

@@ -1,6 +1,7 @@
 function start() {
   const {
     Driver,
+    EntityContainer,
     GameContainer,
     Input,
     Time,
@@ -10,7 +11,8 @@ function start() {
     Projectile,
     ItemObject,
     ItemData,
-    DraggableUI,
+    ButtonUI,
+    DraggableHeldUI,
   } = BDOTJS;
   const { CE, canvas } = SetupCanvas();
   Input.addButton('jump', [87, 38, 32]); // w, up arrow, space bar
@@ -51,24 +53,30 @@ function start() {
       }
     }
   }
-  const main = new GameContainer(canvas);
+  const main = new EntityContainer(canvas);
+  const game = new GameContainer(canvas);
+
+  main.addEntity(new ButtonUI('Play', () => {
+    Driver.setScene(game);
+  }, 100, 100, 300, 100));
+
   const world = new World();
   const player = new Player(world, Projectile, 100, 100, 50, 100);
   Time.setFramedInterval(() => {
     if (Input.getButtonDown('e')) {
-      main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
+      game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
     }
     // for (let i = 0; i < 10; i += 1) {
-    //   main.addEntity(new Entity(Math.random() * CE.width, Math.random() * CE.height, 10, 10));
+    //   game.addEntity(new Entity(Math.random() * CE.width, Math.random() * CE.height, 10, 10));
     // }
   }, 1);
-  main.addEntity(player);
+  game.addEntity(player);
   for (let x = 0; x < 4; x += 1) {
-    main.addEntity(new ItemObject(world, new ItemData(), (x * 200) + 100, CE.height, 30, 30));
+    game.addEntity(new ItemObject(world, new ItemData(), (x * 200) + 100, CE.height, 30, 30));
   }
-  main.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
+  game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
 
-  main.addEntity(new DraggableUI(100, 100, 100, 100));
+  game.addEntity(new DraggableHeldUI(100, 100, 100, 100));
 
   Driver.setCanvas(canvas);
   Driver.setScene(main);

@@ -29,7 +29,32 @@
     }
   }
 
+  function TextRender(canvas) {
+    const { x, y, w, h, color, text, background, centered } = this;
+    canvas.fillStyle = background;
+    canvas.fillRect(x, y, w, h);
+    canvas.fillStyle = color;
+    let tx = x;
+    if (centered) {
+      canvas.textAlign = 'center';
+      tx += w / 2;
+    }
+    canvas.fillText(text, tx, y + (h / 2), w);
+  }
+
   class ButtonUI extends Clickable {
+    constructor(text, onclick, ...args) {
+      super(...args);
+      this.onclick = onclick;
+      this.text = text;
+    }
+    initRenderer() {
+      this.text = 'button';
+      this.color = '#fff';
+      this.background = '#000';
+      this.centered = true;
+      this.draw = TextRender;
+    }
     onHover() {
       this.x += 1;
     }
@@ -43,7 +68,7 @@
       this.y -= 1;
     }
     onClick() {
-      this.w *= 2;
+      if (this.onclick) this.onclick();
     }
   }
 
