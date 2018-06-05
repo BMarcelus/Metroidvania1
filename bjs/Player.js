@@ -24,7 +24,7 @@
       };
       this.doubleJumps = 3;
       this.maxDoubleJumps = 3;
-      this.inventory = new Inventory(3);
+      this.inventory = new Inventory(3, this);
     }
     update() {
       const hi = Input.getAxisHorizontal();
@@ -61,13 +61,16 @@
         this.x += this.direction * 20;
       }
       if (Input.getButtonDown('shoot')) {
-        this.shoot();
+        //this.shoot();
       }
       if (Input.getButtonDown('dash')) {
         this.dash(hi, Input.getAxisVertical());
       }
       if (Input.getButtonDown('q')) {
         this.inventory.dropItem(this);
+      }
+      if (Input.getButtonDown('inventory')) {
+        this.inventory.toggleDisplay();
       }
       if (this.hasGravity) {
         this.applyGravity();

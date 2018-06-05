@@ -168,6 +168,12 @@ BDOTJS.init = function init() {
     setScene(scene) {
       this.scene = scene;
     }
+    getScene() {
+      return this.scene;
+    }
+    getCanvas() {
+      return this.canvas;
+    }
     start(scene) {
       if (scene) this.setScene(scene);
       Time.last = Date.now();

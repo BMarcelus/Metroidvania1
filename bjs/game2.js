@@ -23,6 +23,7 @@ function start() {
   Input.addButton('e', [69]);
   Input.addButton('q', [81]); // drop
   Input.addButton('dash', [16]); // Left Shift, or both shifts actualy
+  Input.addButton('inventory', [27]); //tab and esc
 
   function boundToScreen() {
     const w = CE.width - this.w;
@@ -72,7 +73,13 @@ function start() {
   }, 1);
   game.addEntity(player);
   for (let x = 0; x < 4; x += 1) {
-    game.addEntity(new ItemObject(world, new ItemData(), (x * 200) + 100, CE.height, 30, 30));
+    const item = new ItemObject(world, new ItemData('Heavy Rock'), (x * 200) + 100, CE.height, 30, 30);
+    item.data.itemBehaviour = function throwRock() {
+      console.log(this);
+      console.log(this.parent);
+      this.parent.shoot();
+    }
+    game.addEntity(item);
   }
   game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
 

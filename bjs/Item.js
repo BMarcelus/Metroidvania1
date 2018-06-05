@@ -35,6 +35,7 @@
       this.name = name;
     }
     useItem(user) {
+      console.log("use");
       this.itemBehaviour(user);
     }
     dropItem(dropee) {
