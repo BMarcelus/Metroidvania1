@@ -74,8 +74,8 @@ function start() {
   game.addEntity(player);
   for (let x = 0; x < 4; x += 1) {
     const item = new ItemObject(world, new ItemData('Heavy Rock', 3, 5), (x * 200) + 100, CE.height, 30, 30);
-    item.data.itemBehaviour = function throwRock() {
-      this.parent.shoot();
+    item.data.itemBehaviour = function throwRock(user) {
+      user.shoot();
     }
     game.addEntity(item);
   }

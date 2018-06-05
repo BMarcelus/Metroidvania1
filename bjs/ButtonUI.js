@@ -174,8 +174,7 @@
       this.draw = TextRender;
     }
     onClick() {
-      this.item.parent = this.user;
-      this.item.useItem();
+      this.item.useItem(this.user);
       if(this.item.currstack-- == 1) {
         this.inv.removeItem(this.item);
       }

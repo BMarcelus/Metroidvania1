@@ -39,7 +39,7 @@
     findItemIndex(item) {
       let index = -1;
       for (var x = 0; x < this.maxsize; ++x) {
-        if(this.items[x] && this.items[x].name === item.name) {
+        if(this.items[x] && (item == null || this.items[x].name === item.name)) {
           index = x;
           break;
         }
@@ -68,7 +68,13 @@
     }
     dropItem(dropee) {
       if (this.currsize <= 0) return false;
-      const v = this.items.pop();
+      const index = this.findItemIndex(null);
+      if (index <= -1) {
+        return false; 
+      }
+      const v = this.items[index];
+      console.log(v);
+      this.items[index] = null;
       this.currsize--;
       v.dropItem(dropee);
       return true;
