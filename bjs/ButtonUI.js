@@ -162,7 +162,6 @@
     constructor(item, user, inv, ...args) {
       super(...args);
       this.item = item;
-      console.log(item.name);
       this.text = item.name;
       this.user = user;
       this.inv = inv;
@@ -177,7 +176,9 @@
     onClick() {
       this.item.parent = this.user;
       this.item.useItem();
-      this.inv.removeItem(this.item);
+      if(this.item.currstack-- == 1) {
+        this.inv.removeItem(this.item);
+      }
       this.inv.setupUI();
     }
   }

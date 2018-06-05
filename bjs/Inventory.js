@@ -16,8 +16,7 @@
         console.log(this.items[x].name);
       }
     }
-    setupUI()
-    {
+    setupUI() {
       this.UI = new EntityContainer(Driver.getCanvas());
       this.UI.addEntity(new ButtonUI('Return to Game', () => {
         Driver.setScene(this.parent.driver);
@@ -29,18 +28,33 @@
         const button = new ButtonUI("", null, (150*(x+1))-5, 295, 110, 110);
         button.background = "#d4d4d6";
         this.UI.addEntity(button);
-      }
-      for (var x = 0; x < this.items.length; ++x) {
-        if(this.items[x] && this.items[x].name) {
-          const button = new ItemButtonUI(this.items[x], this.parent, this, 150*(x+1), 300, 100, 100);
-          this.UI.addEntity(button);
+        if (this.items[x] && this.items[x].name) {
+          this.UI.addEntity(new ItemButtonUI(this.items[x], this.parent, this, 150*(x+1), 300, 100, 100));
+          const percentage = "" + this.items[x].currstack + "/" + this.items[x].maxstack;
+          this.UI.addEntity(new ButtonUI(percentage, null, (150 * (x + 1)) + 80, 390, 20, 10) );
         }
       }
       Driver.setScene(this.UI);
     }
+    findItemIndex(item) {
+      let index = -1;
+      for (var x = 0; x < this.maxsize; ++x) {
+        if(this.items[x] && this.items[x].name === item.name) {
+          index = x;
+          break;
+        }
+      }
+      return index;
+    }
     addItem(item) {
       if (this.currsize >= this.maxsize) return false;
-      const index = this.items.indexOf(null);
+      let index = this.findItemIndex(item);
+      if (index > -1) {
+        this.items[index].currstack += item.currstack;
+        this.items[index].enforceMaxStack();
+        return true;
+      }
+      index = this.items.indexOf(null);
       if (index > -1)
         this.items[index] = item;
       else

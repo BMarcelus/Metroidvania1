@@ -31,11 +31,12 @@
   }
 
   class ItemData {
-    constructor(name) {
+    constructor(name, currstack, maxstack) {
       this.name = name;
+      this.currstack = currstack;
+      this.maxstack = maxstack;
     }
     useItem(user) {
-      console.log("use");
       this.itemBehaviour(user);
     }
     dropItem(dropee) {
@@ -47,6 +48,9 @@
       Time.setFramedTimeout(() => {
         this.parent.pickedup = false;
       }, 30);
+    }
+    enforceMaxStack() {
+      this.currstack = (this.currstack > this.maxstack) ? this.maxstack : this.currstack;
     }
   }
 

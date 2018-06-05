@@ -73,10 +73,8 @@ function start() {
   }, 1);
   game.addEntity(player);
   for (let x = 0; x < 4; x += 1) {
-    const item = new ItemObject(world, new ItemData('Heavy Rock'), (x * 200) + 100, CE.height, 30, 30);
+    const item = new ItemObject(world, new ItemData('Heavy Rock', 1, 5), (x * 200) + 100, CE.height, 30, 30);
     item.data.itemBehaviour = function throwRock() {
-      console.log(this);
-      console.log(this.parent);
       this.parent.shoot();
     }
     game.addEntity(item);
