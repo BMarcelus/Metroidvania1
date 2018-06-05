@@ -50,7 +50,12 @@
       }, 30);
     }
     enforceMaxStack() {
-      this.currstack = (this.currstack > this.maxstack) ? this.maxstack : this.currstack;
+      if(this.currstack > this.maxstack) {
+        const diff = this.currstack - this.maxstack;
+        this.currstack = this.maxstack;
+        return diff;
+      }
+      return 0;
     }
   }
 

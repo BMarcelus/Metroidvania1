@@ -51,7 +51,11 @@
       let index = this.findItemIndex(item);
       if (index > -1) {
         this.items[index].currstack += item.currstack;
-        this.items[index].enforceMaxStack();
+        const diff = this.items[index].enforceMaxStack();
+        if(diff != 0) {
+          item.currstack = diff;
+          return false;
+        }
         return true;
       }
       index = this.items.indexOf(null);
