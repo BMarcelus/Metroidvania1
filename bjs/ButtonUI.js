@@ -175,9 +175,6 @@
     }
     onClick() {
       this.item.useItem(this.user);
-      if(this.item.currstack-- == 1) {
-        this.inv.removeItem(this.item);
-      }
       this.inv.setupUI();
     }
   }

@@ -10,7 +10,7 @@
       this.damage = damage;
       this.tag = 1;
       this.direction = vx;
-      this.life = 100;
+      this.life = 5000 * (1/speed);
       this.color = 'black';
     }
     update() {

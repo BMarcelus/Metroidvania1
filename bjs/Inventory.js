@@ -8,7 +8,6 @@
       this.maxsize = maxsize;
       this.currsize = 0;
       this.parent = parent;
-      this.gameScene = null;
       this.open = false;
     }
     printinv() {
@@ -16,7 +15,15 @@
         console.log(this.items[x].name);
       }
     }
+    validateInventory() {
+      for(var x = 0; x < this.maxsize; ++x) {
+        if(this.items[x] && this.items[x].currstack <= 0) {
+          this.removeItem(this.items[x]);
+        }
+      }
+    }
     setupUI() {
+      this.validateInventory();
       this.UI = new EntityContainer(Driver.getCanvas());
       this.UI.addEntity(new ButtonUI('Return to Game', () => {
         Driver.setScene(this.parent.driver);
@@ -46,6 +53,14 @@
       }
       return index;
     }
+    useItem(index) {
+      if(this.items[index]) {
+        const b = this.items[index].useItem(this.parent);
+        this.validateInventory();
+        return b;
+      }
+      return false;
+    }
     addItem(item) {
       if (this.currsize >= this.maxsize) return false;
       let index = this.findItemIndex(item);
@@ -73,7 +88,7 @@
         return false; 
       }
       const v = this.items[index];
-      console.log(v);
+      //console.log(v);
       this.items[index] = null;
       this.currsize--;
       v.dropItem(dropee);

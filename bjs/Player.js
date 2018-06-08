@@ -22,9 +22,9 @@
         damage: 0,
         knockback: { vx: -10, vy: 30 },
       };
-      this.doubleJumps = 3;
-      this.maxDoubleJumps = 3;
-      this.inventory = new Inventory(3, this);
+      this.maxDoubleJumps = 1;
+      this.doubleJumps = this.maxDoubleJumps;
+      this.inventory = new Inventory(5, this);
     }
     update() {
       const hi = Input.getAxisHorizontal();
@@ -72,6 +72,21 @@
       if (Input.getButtonDown('inventory')) {
         this.inventory.toggleDisplay();
       }
+      if (Input.getButtonDown('slot1')) {
+        this.inventory.useItem(0);
+      }
+      if (Input.getButtonDown('slot2')) {
+        this.inventory.useItem(1);
+      }
+      if (Input.getButtonDown('slot3')) {
+        this.inventory.useItem(2);
+      }
+      if (Input.getButtonDown('slot4')) {
+        this.inventory.useItem(3);
+      }
+      if (Input.getButtonDown('slot5')) {
+        this.inventory.useItem(4);
+      }
       if (this.hasGravity) {
         this.applyGravity();
       }
@@ -79,6 +94,7 @@
       this.world.boundToFloor(this, this.onGrounded);
     }
     dash(hi, vi) {
+      console.log("dash");
       if (!this.canMove) return;
       this.sustainVelocity = true;
       this.hasGravity = false;
@@ -93,6 +109,7 @@
           this.canMove = true;
           this.hasGravity = true;
           this.vy = -this.gravity;
+          console.log("dash2");
         }, 2);
       }, 6);
     }
@@ -147,6 +164,17 @@
           col.doKnockback(this.direction, 10, 10);
         }
       };
+      this.driver.addEntity(projectile);
+    }
+    shootSpecific(projectile) {
+      const d = ((this.w + projectile.w) / 2) * (1 - (2 * this.flipped));
+      let x = this.x + (this.w / 2) + d + this.vx;
+      x -= projectile.w / 2;
+      const y = (this.y + (this.h / 2)) - (projectile.h / 2);
+      projectile.vx = (1 - (2 * this.flipped));
+      projectile.vy = 0;
+      projectile.x = x;
+      projectile.y = y;
       this.driver.addEntity(projectile);
     }
     jump() {
