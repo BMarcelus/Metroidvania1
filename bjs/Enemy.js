@@ -25,7 +25,7 @@
             this.mx = -1;
           }
         }
-        this.x += this.mx * 3;
+        this.x += this.mx * 3 * Time.deltaTime;
       }
       if (Time.frame % 60 === 0) this.attack();
       if (this.mx) {

@@ -60,9 +60,6 @@
       } else if (Input.getButtonUp('attack2')) {
         this.x += this.direction * 20;
       }
-      if (Input.getButtonDown('shoot')) {
-        //this.shoot();
-      }
       if (Input.getButtonDown('dash')) {
         this.dash(hi, Input.getAxisVertical());
       }
@@ -94,7 +91,6 @@
       this.world.boundToFloor(this, this.onGrounded);
     }
     dash(hi, vi) {
-      console.log("dash");
       if (!this.canMove) return;
       this.sustainVelocity = true;
       this.hasGravity = false;
@@ -109,7 +105,6 @@
           this.canMove = true;
           this.hasGravity = true;
           this.vy = -this.gravity;
-          console.log("dash2");
         }, 2);
       }, 6);
     }

@@ -37,7 +37,7 @@
       this.maxstack = maxstack;
     }
     useItem(user) {
-      this.currstack--;
+      this.currstack -= 1;
       this.itemBehaviour(user);
     }
     dropItem(dropee) {

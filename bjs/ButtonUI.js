@@ -6,7 +6,6 @@
       this.hover = false;
     }
     update() {
-      
       const { mouse } = Input;
       if (this.containsPoint(mouse)) {
         if (!this.hover) {

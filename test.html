@@ -1,0 +1,14 @@
+<canvas></canvas>
+<script>
+var CE = document.querySelector('canvas');
+var canvas = CE.getContext('2d');
+
+var image = new Image();
+image.src = "./B.js.png";
+image.alt='hi';
+
+function draw() {
+  canvas.drawImage(image, 0,0);
+}
+draw();
+</script>

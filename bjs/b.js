@@ -12,6 +12,19 @@ BDOTJS.init = function init() {
     }
   }
 
+  const Images = {};
+
+  function LoadImage(src) {
+    const mappedImage = Images[src];
+    if (mappedImage) return mappedImage;
+    const image = new Image();
+    image.src = `./images/${src}.png`;
+    image.alt = src;
+    Image[src] = image;
+    return image;
+  }
+  const framesPerMilisecond = 60 / 1000;
+
   const Time = {
     time: 0,
     deltaTime: 0,
@@ -26,12 +39,11 @@ BDOTJS.init = function init() {
     timeruuid: 0,
     timeouts: new Map(),
     intervals: new Map(),
+    timeScale: 1,
     process: () => {
       Time.time = Date.now();
-      const framesPerMilisecond = 60 / 1000;
-      // const maxDT = framesPerMilisecond * 100;
       Time.deltaTime = (Time.time - Time.last) * framesPerMilisecond;
-      // if (Time.deltaTime > maxDT) Time.deltaTime = framesPerMilisecond;
+      Time.deltaTime *= Time.timeScale;
       Time.last = Time.time;
       Time.frame += 1;
       Time.framesPerInterval += 1;
@@ -45,10 +57,10 @@ BDOTJS.init = function init() {
       let toDelete = [];
       Time.timeouts.forEach((timeout, key) => {
         if (timeout.frames <= 0) {
-          timeout.callback();
+          timeout.callback(-timeout.frames);
           toDelete.push(key);
         }
-        timeout.frames -= 1;
+        timeout.frames -= Time.deltaTime;
       });
       toDelete.forEach(key => Time.timeouts.delete(key));
       toDelete = [];
@@ -122,6 +134,9 @@ BDOTJS.init = function init() {
     const k = e.keyCode;
     if (Input.keys[k] > 0) return;
     Input.keys[k] = Time.frame + 1;
+    // if (!e.metaKey) {
+    //   e.preventDefault();
+    // }
   });
   window.addEventListener('keyup', (e) => {
     const k = e.keyCode;
@@ -291,10 +306,34 @@ BDOTJS.init = function init() {
   //   }
   // }
 
-  function RectRenderer(canvas) {
-    const { x, y, w, h, color } = this;
-    canvas.fillStyle = color;
-    canvas.fillRect(x, y, w, h);
+  class Renderers {
+    static Rect(canvas) {
+      const { x, y, w, h, color } = this;
+      canvas.fillStyle = color;
+      canvas.fillRect(x, y, w, h);
+    }
+    static Image(canvas) {
+      const { x, y, w, h, image } = this;
+      canvas.drawImage(image, x, y, w, h);
+    }
+    static ColoredImage(canvas) {
+      const { x, y, w, h, color, image } = this;
+      canvas.save();
+      canvas.drawImage(image, x, y, w, h);
+      canvas.fillStyle = color;
+      canvas.globalAlpha = 0.5;
+      canvas.fillRect(x, y, w, h);
+      canvas.restore();
+    }
+    static ColoredImage2(canvas) {
+      const { x, y, w, h, color, image } = this;
+      canvas.save();
+      canvas.drawImage(image, x, y, w, h);
+      canvas.globalCompositeOperation = 'hue';
+      canvas.fillStyle = color;
+      canvas.fillRect(x, y, w, h);
+      canvas.restore();
+    }
   }
 
   class Entity {
@@ -307,7 +346,9 @@ BDOTJS.init = function init() {
     }
     initRenderer() {
       this.color = 'black';
-      this.draw = RectRenderer;
+      // this.draw = RectRenderer;
+      this.image = LoadImage('B.js');
+      this.draw = Renderers.ColoredImage;
     }
     setDriver(driver) {
       this.driver = driver;
@@ -348,6 +389,26 @@ BDOTJS.init = function init() {
     return { CE, canvas };
   }
 
+  function loadImages(names, loadComplete) {
+    const result = {};
+    let imagesLoaded = 0;
+    function imageLoaded() {
+      imagesLoaded += 1;
+      if (imagesLoaded === names.length) {
+        loadComplete();
+      }
+    }
+    for (let i = 0; i < names.length; i += 1) {
+      const image = new Image();
+      image.i = i;
+      image.onload = imageLoaded;
+      image.src = `./images/${names[i]}.png`;
+      image.alt = names[i];
+      result[names[i]] = image;
+    }
+    return result;
+  }
+
   const BJSExports = {
     Entity,
     Time,
@@ -356,6 +417,7 @@ BDOTJS.init = function init() {
     Driver: new Driver(),
     GameContainer: PhysicsContainer,
     EntityContainer,
+    LoadImage,
   };
   return BJSExports;
 };

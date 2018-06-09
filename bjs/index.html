@@ -6,15 +6,6 @@
 </style>
 <canvas id="gc"></canvas>
 <script>
-function pointInRect(point, rect) {
-  return point.x >= rect.x && point.x <= rect.x + rect.w &&
-    point.y >= rect.y && point.y <= rect.y + rect.h;
-}
-const B = {
-  pointInRect,
-}
-</script>
-<script>
   function loadScript (dir, file) {
    var scr = document.createElement("script");
    scr.src = dir + file + '?32';
