@@ -13,7 +13,6 @@
       this.pickedup = false;
       data.parent = this;
     }
-
     update() {
       this.applyGravity();
       this.applyVelocity();

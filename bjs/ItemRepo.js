@@ -2,7 +2,9 @@
   const { ItemObject, ItemData, Projectile, HitBox, Time } = BDOTJS;
 
   class ItemRepo {
-    static HeavyRock(world, x, y, w, h) {
+    static HeavyRock(world, x, y) {
+      const w = 50;
+      const h = w;
       const item = new ItemObject(world, new ItemData('Heavy Rock', 3, 5), x, y, w, h);
       item.color = 'black';
       item.data.itemBehaviour = function throwRock(user) {
@@ -10,9 +12,12 @@
       };
       return item;
     }
-    static SlowMo(world, x, y, w, h) {
+    static SlowMo(world, x, y) {
+      const w = 50;
+      const h = w;
       const item = new ItemObject(world, new ItemData('SlowMo', 10, 20), x, y, w, h);
-      item.color = 'purple';
+      item.image = BDOTJS.LoadImage('clock');
+      item.color = null;//'purple';
       item.data.itemBehaviour = function slowMo() {
         Time.timeScale = 0.25;
         Time.setFramedInterval(() => {
@@ -21,23 +26,33 @@
       };
       return item;
     }
-    static RocketShoes(world, x, y, w, h) {
+    static RocketShoes(world, x, y) {
+      const w = 50;
+      const h = w;
       const item = new ItemObject(world, new ItemData('Rocket Shoes', 1, 2), x, y, w, h);
-      item.color = 'grey';
+      item.image = BDOTJS.LoadImage('rocketshoes');
+      item.color = null;
       item.data.itemBehaviour = function rocketJump(user) {
         user.vy = -40;
       };
       return item;
     }
-    static AntigravityPotion(world, x, y, w, h) {
+    static AntigravityPotion(world, x, y) {
+      const w = 50;
+      const h = w;
       const item = new ItemObject(world, new ItemData('Antigravity Potion', 2, 2), x, y, w, h);
-      item.color = 'yellow';
+      console.log(item);
+      item.image = BDOTJS.LoadImage('revgravpot');
+      item.color = null;
+      console.log(item);
       item.data.itemBehaviour = function flipGravity(user) {
         user.gravity = -user.gravity;
       };
       return item;
     }
-    static Nuke(world, x, y, w, h) {
+    static Nuke(world, x, y) {
+      const w = 50;
+      const h = w;
       const item = new ItemObject(world, new ItemData('Nuke', 1, 1), x, y, w, h);
       item.color = 'red';
       item.data.itemBehaviour = function shootNuke(user) {

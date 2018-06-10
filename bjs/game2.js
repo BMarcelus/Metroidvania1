@@ -77,11 +77,11 @@ function start() {
   }, 1);
   game.addEntity(player);
 
-  game.addEntity(ItemRepo.HeavyRock(world, 300, CE.height, 30, 30));
-  game.addEntity(ItemRepo.RocketShoes(world, 400, CE.height, 30, 30));
-  game.addEntity(ItemRepo.AntigravityPotion(world, 500, CE.height, 30, 30));
-  game.addEntity(ItemRepo.Nuke(world, 200, CE.height, 30, 30));
-  game.addEntity(ItemRepo.SlowMo(world, 600, CE.height, 30, 30));
+  game.addEntity(ItemRepo.HeavyRock(world, 300, CE.height));
+  game.addEntity(ItemRepo.RocketShoes(world, 400, CE.height));
+  game.addEntity(ItemRepo.AntigravityPotion(world, 500, CE.height));
+  game.addEntity(ItemRepo.Nuke(world, 200, CE.height));
+  game.addEntity(ItemRepo.SlowMo(world, 600, CE.height));
 
   game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
 
