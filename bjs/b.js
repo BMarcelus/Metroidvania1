@@ -389,26 +389,6 @@ BDOTJS.init = function init() {
     return { CE, canvas };
   }
 
-  function loadImages(names, loadComplete) {
-    const result = {};
-    let imagesLoaded = 0;
-    function imageLoaded() {
-      imagesLoaded += 1;
-      if (imagesLoaded === names.length) {
-        loadComplete();
-      }
-    }
-    for (let i = 0; i < names.length; i += 1) {
-      const image = new Image();
-      image.i = i;
-      image.onload = imageLoaded;
-      image.src = `./images/${names[i]}.png`;
-      image.alt = names[i];
-      result[names[i]] = image;
-    }
-    return result;
-  }
-
   const BJSExports = {
     Entity,
     Time,

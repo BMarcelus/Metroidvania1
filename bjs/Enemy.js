@@ -1,5 +1,5 @@
 (function LoadEnemy() {
-  const { Entity, Time, HitBox } = BDOTJS;
+  const { Entity, Time, HitBox, LoadImage } = BDOTJS;
   class Enemy extends Entity {
     constructor(world, ...args) {
       super(...args);
@@ -15,6 +15,20 @@
       this.direction = 1;
       this.canMove = true;
       this.onGrounded = this.onGrounded.bind(this);
+    }
+    initRenderer() {
+      this.image = LoadImage('B.js');
+      this.imageData = {
+        dx: 0, dy: 0, scaleX: 1, scaleY: 1, alpha: 1,
+      };
+    }
+    draw(canvas) {
+      const { x, y, w, h, image } = this;
+      const { dx, dy, scaleX, scaleY, alpha } = this.imageData;
+      canvas.save();
+      canvas.globalAlpha = alpha;
+      canvas.drawImage(image, x + dx, y + dy, w * scaleX, h * scaleY);
+      canvas.restore();
     }
     update() {
       if (this.canMove) {
