@@ -2,6 +2,26 @@
   const { ItemObject, ItemData, Projectile, HitBox, Time } = BDOTJS;
 
   class ItemRepo {
+    static FireCloak(world, x, y) {
+      const w = 50;
+      const h = w;
+      const item = new ItemObject(world, new ItemData('FireCloak', 2, 3), x, y, w, h);
+      item.color = 'orange';
+      item.data.itemBehaviour = function createFire(user) {
+        for(var x = 0; x < 20; ++x) {
+          Time.setFramedTimeout(() => {
+            const hitbox = new HitBox(user, user.x - 200, user.y - 200, 400, 400);
+            hitbox.collisionBehaviour = function nukeHitboxHit(col) {
+              if (col.team === 2) {
+                col.takeDamage(1);
+              }
+            };
+            user.driver.addEntity(hitbox);
+          }, x * 100);
+        }
+      };
+      return item;
+    }
     static HeavyRock(world, x, y) {
       const w = 50;
       const h = w;
@@ -41,10 +61,8 @@
       const w = 50;
       const h = w;
       const item = new ItemObject(world, new ItemData('Antigravity Potion', 2, 2), x, y, w, h);
-      console.log(item);
       item.image = BDOTJS.LoadImage('revgravpot');
       item.color = null;
-      console.log(item);
       item.data.itemBehaviour = function flipGravity(user) {
         user.gravity = -user.gravity;
       };
@@ -61,11 +79,9 @@
         projectile.collisionBehaviour = function nukeProjectileHit(col) {
           if (col.team === 2) {
             const hitbox = new HitBox(projectile, this.x - 200, this.y - 200, 400, 400);
-            // hitbox.life = 300;
             hitbox.collisionBehaviour = function nukeHitboxHit(col2) {
               if (col2.team === 2) {
                 col2.takeDamage(100);
-                // col2.canMove = false;
                 col2.doKnockback(this.direction, 200, 100);
               }
             };

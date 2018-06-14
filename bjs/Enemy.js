@@ -54,12 +54,12 @@
       if (this.invul) return;
       this.invul = true;
       this.color = '#0ff';
-      setTimeout(() => { this.color = '#2af'; }, 50);
+      Time.setFramedTimeout(() => { this.color = '#2af'; }, 50);
       this.life -= dmg;
       if (this.life <= 0) {
-        setTimeout(() => { this.shouldDelete = true; }, 200);
+        Time.setFramedTimeout(() => { this.shouldDelete = true; }, 200);
       } else {
-        setTimeout(() => { this.color = 'blue'; this.invul = false; }, 200);
+        Time.setFramedTimeout(() => { this.color = 'blue'; this.invul = false; }, 200);
       }
     }
     doKnockback(dir, xForce, yForce) {

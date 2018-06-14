@@ -240,6 +240,7 @@ BDOTJS.init = function init() {
     draw(canvas) {
       this.entities.forEach(e => e.draw(canvas));
     }
+    setDriver(a) { }
     update() {
       LoopAndRemove(this.entities, (e) => {
         if (e.update) e.update();

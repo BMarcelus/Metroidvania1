@@ -2,7 +2,7 @@
   const { Entity, Input, Time, HitBox, Inventory } = BDOTJS;
 
   class Player extends Entity {
-    constructor(world, Projectile, ...args) {
+    constructor(world, Projectile, scene, ...args) {
       super(...args);
       this.world = world;
       this.vx = 0;
@@ -24,7 +24,8 @@
       };
       this.maxDoubleJumps = 1;
       this.doubleJumps = this.maxDoubleJumps;
-      this.inventory = new Inventory(5, this);
+      this.scene = scene;
+      this.inventory = new Inventory(8, 3, this);
     }
     update() {
       const hi = Input.getAxisHorizontal();
@@ -70,19 +71,19 @@
         this.inventory.toggleDisplay();
       }
       if (Input.getButtonDown('slot1')) {
-        this.inventory.useItem(0);
+        //this.inventory.useItem(0);
       }
       if (Input.getButtonDown('slot2')) {
-        this.inventory.useItem(1);
+        this.inventory.useItem(5);
       }
       if (Input.getButtonDown('slot3')) {
-        this.inventory.useItem(2);
+        this.inventory.useItem(6);
       }
       if (Input.getButtonDown('slot4')) {
-        this.inventory.useItem(3);
+        this.inventory.useItem(7);
       }
       if (Input.getButtonDown('slot5')) {
-        this.inventory.useItem(4);
+        //this.inventory.useItem(4);
       }
       if (this.hasGravity) {
         this.applyGravity();

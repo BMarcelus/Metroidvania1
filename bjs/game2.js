@@ -66,7 +66,7 @@ function start() {
   }, CE.width / 3, CE.height * (2 / 5), CE.width / 3, CE.height / 5));
 
   const world = new World();
-  const player = new Player(world, Projectile, 100, 100, 50, 100);
+  const player = new Player(world, Projectile, game, 100, 100, 50, 100);
   Time.setFramedInterval(() => {
     if (Input.getButtonDown('e')) {
       game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
@@ -82,6 +82,7 @@ function start() {
   game.addEntity(ItemRepo.AntigravityPotion(world, 500, CE.height));
   game.addEntity(ItemRepo.Nuke(world, 200, CE.height));
   game.addEntity(ItemRepo.SlowMo(world, 600, CE.height));
+  game.addEntity(ItemRepo.FireCloak(world, 700, CE.height));
 
   game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
 

@@ -35,11 +35,13 @@
     canvas.fillRect(x, y, w, h);
     canvas.fillStyle = color;
     let tx = x;
+    let ty = y;
     if (centered) {
       canvas.textAlign = 'center';
       tx += w / 2;
+      ty += 7 * h / 12;
     }
-    canvas.fillText(text, tx, y + (h / 2), w);
+    canvas.fillText(text, tx, ty, w);
   }
 
   class ButtonUI extends Clickable {
@@ -157,13 +159,10 @@
     }
   }
 
-  class ItemButtonUI extends Clickable {
-    constructor(item, user, inv, ...args) {
+  class BasicText extends Clickable {
+    constructor(text, ...args) {
       super(...args);
-      this.item = item;
-      this.text = item.name;
-      this.user = user;
-      this.inv = inv;
+      this.text = text;
     }
     initRenderer() {
       this.text = 'button';
@@ -172,9 +171,60 @@
       this.centered = true;
       this.draw = TextRender;
     }
+  }
+
+  class ItemButtonUI extends DraggableHeldUI {//Clickable {
+    constructor(item, user, inv, draggable, ...args) {
+      super(...args);
+      this.item = item;
+      this.text = item.name;
+      this.user = user;
+      this.inv = inv;
+      this.tolerance = 10;
+      this.moved = false;
+      this.draggable = draggable;
+    }
+    initRenderer() {
+      this.text = 'button';
+      this.color = '#fff';
+      this.background = '#000';
+      this.centered = true;
+      this.draw = TextRender;
+    }
+    update() {
+      if(this.draggable) {
+        super.update();
+        if (!this.moved && Math.abs(this.x - this.prevX) > this.tolerance || Math.abs(this.y - this.prevY) > this.tolerance) {
+          this.moved = true;
+        }
+      }
+    }
     onClick() {
-      this.item.useItem(this.user);
-      this.inv.setupUI();
+      this.prevX = this.x;
+      this.prevY = this.y;
+      this.moved = false;
+    }
+    offHeld() {
+      let index;
+      if (!this.moved) {
+        this.item.useItem(this.user);
+        this.inv.refresh();
+      } else if ( (index = this.overSlot(this.inv.slots) ) != -1 && this.inv.items[index] == null) {
+        this.inv.removeItem(this.item);
+        this.inv.items[index] = this.item;
+        this.inv.refresh();
+      } else {
+        this.x = this.prevX;
+        this.y = this.prevY;
+      }
+    }
+    overSlot(slots) {
+      for (var x = 0; x < slots.length; ++x) {
+        if(slots[x].containsPoint(Input.mouse)) {
+          return x;
+        }
+      }
+      return -1;
     }
   }
 
@@ -183,4 +233,5 @@
   BDOTJS.DraggableUI = DraggableUI;
   BDOTJS.DraggableHeldUI = DraggableHeldUI;
   BDOTJS.TrollButtonUI = TrollButtonUI;
+  BDOTJS.BasicText = BasicText;
 }());
