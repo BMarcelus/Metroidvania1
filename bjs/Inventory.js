@@ -27,11 +27,11 @@
     }
     mainSlots() {
       for (var x = 0; x < this.maxsize - this.quicksize; ++x) {
-        this.slots[x] = new BasicText("", (150*(x+1))-5, 295, 110, 110);
+        this.slots[x] = new BasicText("", (150 * (x + 1)) - 5, 295, 110, 110);
         this.slots[x].background = "#d4d4d6";
         this.invUI.addEntity(this.slots[x]);
         if (this.items[x] && this.items[x].name) {
-          this.invUI.addEntity(new ItemButtonUI(this.items[x], this.parent, this, true, 150*(x+1), 300, 100, 100));
+          this.invUI.addEntity(new ItemButtonUI(this.items[x], this.parent, this, true, 150 * (x + 1), 300, 100, 100));
           const percentage = "" + this.items[x].currstack + "/" + this.items[x].maxstack;
           this.invUI.addEntity(new BasicText(percentage, (150 * (x + 1)) + 80, 390, 20, 10) );
         }
@@ -73,6 +73,7 @@
     }
     setupGameUI() {
       this.validateInventory();
+      if(this.gameUI) this.gameUI.shouldDelete = true;
       this.gameUI = new EntityContainer(Driver.getCanvas());
       this.quickSlots(this.gameUI, -390, false);
       this.parent.scene.addEntity(this.gameUI);
