@@ -1,24 +1,66 @@
 (function LoadItemRepo() {
-  const { ItemObject, ItemData, Projectile, HitBox, Time } = BDOTJS;
+  const { ItemObject, ItemData, Projectile, HitBox, HitBoxSequence, Time } = BDOTJS;
 
   class ItemRepo {
+    static SwordSwing(world, x, y) {
+      const w = 10;
+      const h = 10;
+      const item = new ItemObject(world, new ItemData('SwordSwing', 200, 300), x, y, 50, 50);
+      item.color = 'green';
+      
+      item.data.itemBehaviour = function swingSword(user) {
+        let hitBoxOptions = {};
+        hitBoxOptions.flipX = (user.direction == -1);
+        const z1 = new HitBoxSequence (user, hitBoxOptions,
+          [-30, -50, 70, 50, 2],
+          [30, -30, 50, 50, 2],
+          [60, 10, 50, 50, 2],
+          [90, 40, 50, 50, 2]
+        );
+        hitBoxOptions.color = 'green';
+        const z2 = new HitBoxSequence (user, hitBoxOptions,
+          [-30, -70, 70, 50, 2],
+          [30, -50, 50, 50, 2],
+          [60, -10, 50, 50, 2],
+          [90, 20, 50, 50, 2]
+        );
+        z1.collisionBehaviour = z2.collisionBehaviour = function swordSwingHit(col) {
+          if (col.team === 2) {
+            col.doKnockback(this.direction, 20, 20);
+            col.takeDamage(1);
+          }
+        }
+        user.driver.addEntity(z1);
+        user.driver.addEntity(z2);  
+      }
+      return item;
+    }
     static FireCloak(world, x, y) {
       const w = 50;
       const h = w;
       const item = new ItemObject(world, new ItemData('FireCloak', 2, 3), x, y, w, h);
       item.color = 'orange';
       item.data.itemBehaviour = function createFire(user) {
-        for(var x = 0; x < 20; ++x) {
-          Time.setFramedTimeout(() => {
-            const hitbox = new HitBox(user, user.x - 200, user.y - 200, 400, 400);
-            hitbox.collisionBehaviour = function nukeHitboxHit(col) {
-              if (col.team === 2) {
-                col.takeDamage(1);
-              }
-            };
-            user.driver.addEntity(hitbox);
-          }, x * 100);
+        let hitBoxOptions = {};
+        hitBoxOptions.flipX = (user.direction == -1);
+        const hitboxes = new HitBoxSequence (user, hitBoxOptions,
+          [0, 0, 10, 10, 1],
+          [0, -30, 10, 10, 1],
+          [30, -30, 10, 10, 1],
+          [30, 0, 10, 10, 1],
+          [30, 30, 10, 10, 1],
+          [0, 30, 10, 10, 1],
+          [-30, 30, 10, 10, 1],
+          [-30, 0, 10, 10, 1],
+          [-30, -30, 10, 10, 1]
+        );
+        hitboxes.collisionBehaviour = function fireCloakHit(col) {
+          if (col.team === 2) {
+            col.doKnockback(this.direction, 20, 1);
+            col.takeDamage(1);
+          }
         }
+        user.driver.addEntity(hitboxes);
       };
       return item;
     }

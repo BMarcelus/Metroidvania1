@@ -77,14 +77,15 @@ function start() {
   }, 1);
   game.addEntity(player);
 
-  game.addEntity(ItemRepo.HeavyRock(world, 300, CE.height));
-  game.addEntity(ItemRepo.RocketShoes(world, 400, CE.height));
-  game.addEntity(ItemRepo.AntigravityPotion(world, 500, CE.height));
-  game.addEntity(ItemRepo.Nuke(world, 200, CE.height));
-  game.addEntity(ItemRepo.SlowMo(world, 600, CE.height));
-  game.addEntity(ItemRepo.FireCloak(world, 700, CE.height));
+  game.addEntity(ItemRepo.HeavyRock(world, 250, CE.height));
+  game.addEntity(ItemRepo.RocketShoes(world, 275, CE.height));
+  game.addEntity(ItemRepo.AntigravityPotion(world, 300, CE.height));
+  game.addEntity(ItemRepo.Nuke(world, 325, CE.height));
+  game.addEntity(ItemRepo.SlowMo(world, 350, CE.height));
+  game.addEntity(ItemRepo.FireCloak(world, 375, CE.height));
+  game.addEntity(ItemRepo.SwordSwing(world, 400, CE.height));
 
-  game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
+  //game.addEntity(new Enemy(world, CE.width * Math.random(), 100, 80, 100));
 
   Driver.setCanvas(canvas);
   Driver.setScene(main);
